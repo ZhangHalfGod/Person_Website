@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile — 岗位职责、坐标系与数据流</title>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --panel: #14161c;
+      --line: #2a2e38;
+      --text: #e8edf4;
+      --muted: #9aa3b2;
+      --warm: #e8a15a;
+      --warm-dim: #8a5a28;
+      --green: #6bcb8b;
+      --blue: #7aa2ff;
+      --red: #e07a6a;
+      --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    a { color: var(--warm); }
+    header {
+      padding: 2.2rem 1.5rem 1.2rem;
+      border-bottom: 1px solid var(--line);
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    header p { color: var(--muted); max-width: 72ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.1rem;
+      margin-top: 1rem;
+      font-size: 0.92rem;
+    }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.4rem 0 3rem; }
+    h2 {
+      font-size: 1.25rem;
+      margin: 0 0 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--line);
+    }
+    h3 { font-size: 1.02rem; color: var(--warm); margin: 1.4rem 0 0.5rem; }
+    p.lead { color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: var(--panel);
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.55rem 0.7rem;
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.08rem 0.4rem;
+      border-radius: 3px;
+      background: #2a2118;
+      color: var(--warm);
+      margin-right: 0.25rem;
+    }
+    .tag.later { background: #1a2430; color: var(--blue); }
+    .tag.now { background: #1a2a20; color: var(--green); }
+    .tag.gap { background: #2a1818; color: var(--red); }
+    .diagram {
+      background: #101218;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.8rem;
+      overflow-x: auto;
+      margin: 0.8rem 0 1.2rem;
+    }
+    .diagram svg { display: block; max-width: 100%; height: auto; }
+    .caption { color: var(--muted); font-size: 0.85rem; margin: -0.4rem 0 1.2rem; }
+    ul.need { padding-left: 1.2rem; }
+    ul.need li { margin: 0.35rem 0; }
+    code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    footer {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1.5rem 2.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .note {
+      background: var(--panel);
+      border-left: 3px solid var(--warm);
+      padding: 0.7rem 0.9rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Profile <span>/ 岗位 · 流程 · 坐标 · 数据</span></h1>
+    <p>
+      对应代码 <code>Code/Module/Main</code>（走廊）与 <code>Code/Module/door</code>（房间）。
+      第一期无后端、无物理。细腻材质属于 3D 美术 / 技术美术，不是 UI 原型，也不是后端。
+    </p>
+    <nav>
+      <a href="#roles">1. 岗位与工具</a>
+      <a href="#workflow">2. 工作流程</a>
+      <a href="#coords">3. 坐标系</a>
+      <a href="#data">4. 数据流</a>
+      <a href="#todo">5. 现在要增加的</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="roles">
+      <h2>1. 有几个岗位、各自干什么、用什么工具</h2>
+      <p class="lead">小团队可以一人兼多职。下表按「完整做成参考图那种细腻产品」拆开，避免把贴图活误当成前端或后端。</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>岗位</th>
+            <th>职责（要干的事）</th>
+            <th>交付物</th>
+            <th>常用工具</th>
+            <th>本项目现状</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag">产品</span><br />产品 / 负责人</td>
+            <td>定页面名 Profile、锁方案 B+A 灯/文字、门数量、第一期不做物理/后端、验收标准。</td>
+            <td>锁定表、可执行文档批次</td>
+            <td>文档、Issue、本 <code>System_doc</code></td>
+            <td><span class="tag now">已有</span> 方案已锁定</td>
+          </tr>
+          <tr>
+            <td><span class="tag">UI</span><br />UI / UX</td>
+            <td>出氛围原型图、HUD 文案与位置、房间陈设信息架构（左画右黑板）。不负责 PBR 贴图。</td>
+            <td>PNG 原型、UI 规范</td>
+            <td>Figma / Photoshop / Midjourney 等出图</td>
+            <td><span class="tag now">已有</span> 走廊与房间参考 PNG</td>
+          </tr>
+          <tr>
+            <td><span class="tag">3D</span><br />环境 / 材质美术</td>
+            <td>做能进引擎的木头、门、金框、灯罩；画 albedo / roughness / normal / metalness。</td>
+            <td>GLB + 2K/4K 贴图套件</td>
+            <td>Blender、Substance Painter、或 CC0 库（Poly Haven）</td>
+            <td><span class="tag gap">缺口</span> 现为程序化木纹 + box</td>
+          </tr>
+          <tr>
+            <td><span class="tag">TA</span><br />技术美术</td>
+            <td>定米制单位、UV、铰链轴、贴图命名；控制面数与贴图体积，避免网页卡死。</td>
+            <td>资产规范、命名表、性能上限</td>
+            <td>Blender、glTF 校验、Three.js 预览</td>
+            <td><span class="tag gap">缺口</span> 尚未建资产规范</td>
+          </tr>
+          <tr>
+            <td><span class="tag">前端</span><br />Web 3D 前端</td>
+            <td>路由、HUD、走廊状态机、房间入场、把美术资产接到 R3F、灯光与后期。</td>
+            <td>Vite React 工程、场景组件</td>
+            <td>VS Code / Cursor、Vite、React 18、R3F、Three.js、Tailwind、zustand</td>
+            <td><span class="tag now">已有</span> 交互第一期已通</td>
+          </tr>
+          <tr>
+            <td><span class="tag later">后端</span><br />后端</td>
+            <td>仅当画/黑板/桌子要存档时：房间内容 API、登录。不负责木头反光。</td>
+            <td>Express + SQLite + JWT（候选）</td>
+            <td>Node、Express、better-sqlite3</td>
+            <td><span class="tag later">以后</span> 第一期禁止</td>
+          </tr>
+          <tr>
+            <td><span class="tag later">物理</span><br />物理 / 玩法（可选）</td>
+            <td>重力、撞墙、桌上物体可碰。与当前「相机关键帧」是另一条线。</td>
+            <td>Rapier 或 Cannon 场景</td>
+            <td><code>@react-three/rapier</code></td>
+            <td><span class="tag later">以后</span> 第一期禁止</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="workflow">
+      <h2>2. 岗位工作流程</h2>
+      <p class="lead">箭头表示依赖：下游没有上游交付物时，只能用占位（现在的程序化材质）。后端不参与第一期主路径。</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 1040 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="岗位工作流程图">
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e8a15a"/>
+            </marker>
+          </defs>
+          <text x="20" y="28" fill="#9aa3b2" font-size="13">第一期主路径（实线）· 以后才接后端/物理（虚线）</text>
+
+          <rect x="20" y="52" width="140" height="64" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="90" y="78" text-anchor="middle" fill="#e8edf4" font-size="13">产品</text>
+          <text x="90" y="98" text-anchor="middle" fill="#9aa3b2" font-size="11">锁定范围</text>
+
+          <line x1="160" y1="84" x2="198" y2="84" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <rect x="206" y="52" width="140" height="64" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="276" y="78" text-anchor="middle" fill="#e8edf4" font-size="13">UI / UX</text>
+          <text x="276" y="98" text-anchor="middle" fill="#9aa3b2" font-size="11">原型图 · HUD</text>
+
+          <line x1="346" y1="84" x2="384" y2="84" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <rect x="392" y="40" width="150" height="88" rx="8" fill="#1b1e26" stroke="#6bcb8b"/>
+          <text x="467" y="68" text-anchor="middle" fill="#e8edf4" font-size="13">3D 美术</text>
+          <text x="467" y="88" text-anchor="middle" fill="#9aa3b2" font-size="11">模型 + PBR 贴图</text>
+          <text x="467" y="108" text-anchor="middle" fill="#6bcb8b" font-size="10">细腻主要在这里</text>
+
+          <line x1="542" y1="84" x2="580" y2="84" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <rect x="588" y="52" width="140" height="64" rx="8" fill="#1b1e26" stroke="#7aa2ff"/>
+          <text x="658" y="78" text-anchor="middle" fill="#e8edf4" font-size="13">技术美术</text>
+          <text x="658" y="98" text-anchor="middle" fill="#9aa3b2" font-size="11">铰链 · UV · 预算</text>
+
+          <line x1="728" y1="84" x2="766" y2="84" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <rect x="774" y="40" width="150" height="88" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="849" y="68" text-anchor="middle" fill="#e8edf4" font-size="13">Web 3D 前端</text>
+          <text x="849" y="88" text-anchor="middle" fill="#9aa3b2" font-size="11">R3F 接入 · 状态机</text>
+          <text x="849" y="108" text-anchor="middle" fill="#e8a15a" font-size="10">当前主力</text>
+
+          <line x1="849" y1="128" x2="849" y2="168" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="774" y="172" width="150" height="56" rx="8" fill="#1b1e26" stroke="#2a2e38"/>
+          <text x="849" y="196" text-anchor="middle" fill="#e8edf4" font-size="13">验收 / 浏览器</text>
+          <text x="849" y="214" text-anchor="middle" fill="#9aa3b2" font-size="11">走廊 0→3 · 开门进房</text>
+
+          <rect x="206" y="172" width="326" height="56" rx="8" fill="#101218" stroke="#2a2e38" stroke-dasharray="5 4"/>
+          <text x="369" y="196" text-anchor="middle" fill="#7aa2ff" font-size="13">后端（虚线 · 以后）</text>
+          <text x="369" y="214" text-anchor="middle" fill="#9aa3b2" font-size="11">仅当画 / 黑板 / 桌子需要存档</text>
+          <line x1="532" y1="200" x2="770" y2="200" stroke="#7aa2ff" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+
+          <rect x="20" y="248" width="1000" height="52" rx="8" fill="#14161c" stroke="#2a2e38"/>
+          <text x="40" y="270" fill="#9aa3b2" font-size="12">现在卡在：UI 参考图已有，前端交互已通，缺少 3D 美术交付的贴图/模型，所以画面细腻上不去。</text>
+          <text x="40" y="288" fill="#9aa3b2" font-size="12">物理与后端不要插入这条实线；插进去会和「相机关键帧 + rooms.json」缠在一起。</text>
+        </svg>
+      </div>
+      <p class="caption">图 1 · 岗位工作流。细腻外观 = 3D 美术出资源 + 前端把资源接到灯和材质上。</p>
+    </section>
+
+    <section id="coords">
+      <h2>3. 当前系统坐标系图解</h2>
+      <p class="note">
+        <strong>模块之间不共用一套世界坐标。</strong>
+        走廊 Canvas 卸载后，房间是全新原点。两边交互只传 <code>doorId</code>（字符串 <code>0</code>–<code>7</code>），不传 x/y/z。
+        单位均为米。Y 向上。相机眼高 <code>CAM_Y = 1.56</code>。
+      </p>
+
+      <h3>3.1 世界轴 vs 画面左右（朝 +Z 看时）</h3>
+      <p>
+        文档约定「X 左负右正」是<strong>世界系</strong>。Three.js 相机看向 +Z 时，相机右轴是世界 <code>-X</code>，所以：
+        <strong>画面左边 = 世界 +X，画面右边 = 世界 −X</strong>。
+        走廊 <code>side: "left"</code> 的门在世界 −X（文档的左墙）；房间为了对上「画面左画、画面右黑板」，画在世界 +X，黑板在世界 −X。
+      </p>
+
+      <h3>3.2 走廊俯视（XZ）与停驻点</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 1040 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="走廊俯视坐标">
+          <rect x="80" y="40" width="160" height="340" fill="#1a120c" stroke="#4a301e"/>
+          <text x="160" y="30" text-anchor="middle" fill="#9aa3b2" font-size="12">走廊宽 INNER_WIDTH=4.5</text>
+          <line x1="160" y1="40" x2="160" y2="380" stroke="#e8a15a" stroke-width="1" stroke-dasharray="4 4"/>
+          <text x="172" y="56" fill="#e8a15a" font-size="11">x=0 灯中线</text>
+
+          <text x="70" y="70" text-anchor="end" fill="#e07a6a" font-size="11">世界 −X</text>
+          <text x="250" y="70" fill="#6bcb8b" font-size="11">世界 +X</text>
+          <text x="70" y="86" text-anchor="end" fill="#9aa3b2" font-size="10">文档「左墙」</text>
+          <text x="250" y="86" fill="#9aa3b2" font-size="10">文档「右墙」</text>
+          <text x="70" y="102" text-anchor="end" fill="#9aa3b2" font-size="10">画面右边</text>
+          <text x="250" y="102" fill="#9aa3b2" font-size="10">画面左边</text>
+
+          <!-- stops -->
+          <circle cx="160" cy="80" r="5" fill="#7aa2ff"/>
+          <text x="300" y="84" fill="#7aa2ff" font-size="12">stop 0  相机 (0, 1.56, 0)</text>
+          <rect x="88" y="118" width="28" height="36" fill="#3d2618" stroke="#c4a056"/>
+          <text x="102" y="140" text-anchor="middle" fill="#e8a15a" font-size="10">0</text>
+          <rect x="204" y="118" width="28" height="36" fill="#3d2618" stroke="#c4a056"/>
+          <text x="218" y="140" text-anchor="middle" fill="#e8a15a" font-size="10">1</text>
+          <text x="300" y="140" fill="#9aa3b2" font-size="12">门 z = 3.25　左门 x≈−2.25　右门 x≈+2.25</text>
+
+          <circle cx="160" cy="160" r="5" fill="#7aa2ff"/>
+          <text x="300" y="164" fill="#7aa2ff" font-size="12">stop 1  相机 z = 7</text>
+          <rect x="88" y="198" width="28" height="36" fill="#3d2618"/>
+          <text x="102" y="220" text-anchor="middle" fill="#e8a15a" font-size="10">2</text>
+          <rect x="204" y="198" width="28" height="36" fill="#3d2618"/>
+          <text x="218" y="220" text-anchor="middle" fill="#e8a15a" font-size="10">3</text>
+          <text x="300" y="220" fill="#9aa3b2" font-size="12">门 z = 10.25</text>
+
+          <circle cx="160" cy="240" r="5" fill="#7aa2ff"/>
+          <text x="300" y="244" fill="#7aa2ff" font-size="12">stop 2  相机 z = 14</text>
+          <rect x="88" y="278" width="28" height="36" fill="#3d2618"/>
+          <text x="102" y="300" text-anchor="middle" fill="#e8a15a" font-size="10">4</text>
+          <rect x="204" y="278" width="28" height="36" fill="#3d2618"/>
+          <text x="218" y="300" text-anchor="middle" fill="#e8a15a" font-size="10">5</text>
+          <text x="300" y="300" fill="#9aa3b2" font-size="12">门 z = 17.25</text>
+
+          <circle cx="160" cy="320" r="5" fill="#7aa2ff"/>
+          <text x="300" y="324" fill="#7aa2ff" font-size="12">stop 3  相机 z = 21　尽头，中轴不再前进</text>
+          <rect x="88" y="348" width="28" height="28" fill="#3d2618"/>
+          <text x="102" y="366" text-anchor="middle" fill="#e8a15a" font-size="10">6</text>
+          <rect x="204" y="348" width="28" height="28" fill="#3d2618"/>
+          <text x="218" y="366" text-anchor="middle" fill="#e8a15a" font-size="10">7</text>
+          <text x="300" y="366" fill="#9aa3b2" font-size="12">门 z = 24.25　走廊末端约 z = 42</text>
+
+          <polygon points="155,380 160,400 165,380" fill="#e8a15a"/>
+          <text x="175" y="398" fill="#e8a15a" font-size="12">+Z 灭点方向</text>
+        </svg>
+      </div>
+      <p class="caption">图 2 · 走廊俯视。公式：<code>getStopZ(i) = i × 7</code>，<code>getDoorZ(i) = stopZ + 3.25</code>。</p>
+
+      <h3>3.3 全流程相机坐标变化（走廊同一 Canvas）</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>position</th>
+            <th>lookAt</th>
+            <th>其它</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>LOOK_FORWARD</code> stop <em>i</em></td>
+            <td><code>(0, 1.56, 7i)</code></td>
+            <td><code>(0, 1.56, 7i + 20)</code></td>
+            <td>只改 z，不平移 x</td>
+          </tr>
+          <tr>
+            <td><code>WALKING_FORWARD / BACK</code></td>
+            <td>z 从 <code>7i</code> 插值到邻站，约 1s</td>
+            <td>始终 <code>(0, 1.56, 当前z + 20)</code></td>
+            <td>结束后 <code>stopIndex ± 1</code></td>
+          </tr>
+          <tr>
+            <td><code>TURNING_TO_DOOR</code> 左 / 右</td>
+            <td>停在 <code>(0, 1.56, 7i)</code></td>
+            <td>插值到 <code>(±2.05, 1.22, doorZ)</code></td>
+            <td>约 0.75s；左 −X，右 +X</td>
+          </tr>
+          <tr>
+            <td><code>DOOR_OPENING</code></td>
+            <td>同上，仍看向该门</td>
+            <td>保持门的 lookAt</td>
+            <td>门绕墙铰链 <code>rotateY</code> ≈1.55s，然后 <strong>卸载本坐标系</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.4 房间俯视（另一套原点 · 另一 Canvas）</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 1040 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="房间俯视坐标">
+          <rect x="120" y="40" width="360" height="280" fill="#16120e" stroke="#4a301e"/>
+          <text x="300" y="28" text-anchor="middle" fill="#9aa3b2" font-size="12">房间 6.6 × 8.0 · 原点在地面中心 · z∈[−4, +4]</text>
+
+          <line x1="120" y1="180" x2="480" y2="180" stroke="#2a2e38"/>
+          <line x1="300" y1="40" x2="300" y2="320" stroke="#2a2e38"/>
+          <text x="488" y="184" fill="#e8a15a" font-size="11">+X 画面左 · 画</text>
+          <text x="70" y="184" fill="#6dcee0" font-size="11">−X 画面右 · 黑板</text>
+          <text x="308" y="54" fill="#e8a15a" font-size="11">+Z 桌的方向</text>
+          <text x="200" y="336" fill="#9aa3b2" font-size="11">−Z 入场门墙 z=−4</text>
+
+          <rect x="430" y="150" width="18" height="70" fill="#f4f1ea" stroke="#d4af6a" stroke-width="2"/>
+          <text x="520" y="178" fill="#d4af6a" font-size="12">painting 画面左墙</text>
+          <text x="520" y="196" fill="#9aa3b2" font-size="11">世界 x ≈ +3.25, z ≈ 0.28</text>
+
+          <rect x="152" y="145" width="22" height="90" fill="#eeeae2" stroke="#1c140e" stroke-width="2"/>
+          <text x="20" y="178" fill="#eeeae2" font-size="12">blackboard</text>
+          <text x="20" y="196" fill="#9aa3b2" font-size="11">x ≈ −3.25, z ≈ 0.72</text>
+
+          <rect x="268" y="200" width="70" height="36" fill="#4a2e18"/>
+          <text x="303" y="222" text-anchor="middle" fill="#e8edf4" font-size="11">table</text>
+          <text x="520" y="230" fill="#9aa3b2" font-size="11">桌 (0.18, 0, 1.48)</text>
+
+          <rect x="250" y="248" width="18" height="18" fill="#2c1c12"/>
+          <rect x="330" y="248" width="18" height="18" fill="#2c1c12"/>
+          <rect x="290" y="178" width="18" height="18" fill="#2c1c12"/>
+
+          <rect x="370" y="42" width="22" height="36" fill="#3d2618" stroke="#c4a056"/>
+          <text x="520" y="64" fill="#e8a15a" font-size="12">入场门 DOOR_X=1.58, z=−4</text>
+          <text x="520" y="82" fill="#9aa3b2" font-size="11">铰链在 +X 侧，向房间内 rotateY</text>
+
+          <circle cx="318" cy="92" r="6" fill="#7aa2ff"/>
+          <text x="520" y="96" fill="#7aa2ff" font-size="12">相机 (0.55, 1.56, −3.38)</text>
+          <text x="520" y="114" fill="#9aa3b2" font-size="11">lookAt (0.08, 1.13, 2.05) · 进房后不再走路</text>
+          <line x1="318" y1="92" x2="310" y2="210" stroke="#7aa2ff" stroke-width="1.5" stroke-dasharray="3 3"/>
+        </svg>
+      </div>
+      <p class="caption">图 3 · 房间俯视。入场 0–2.5s 只转动门；0–10s 只改灯光强度。相机位姿固定。</p>
+
+      <h3>3.5 模块之间的「坐标交互」</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>从</th>
+            <th>到</th>
+            <th>传什么</th>
+            <th>不传什么</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>走廊门点击</td>
+            <td>路由</td>
+            <td><code>navigate(/room/${doorId})</code></td>
+            <td>走廊的 x/y/z、yaw、stopIndex 都不写入 URL</td>
+          </tr>
+          <tr>
+            <td>zustand 走廊 store</td>
+            <td>再进走廊</td>
+            <td><code>stopIndex</code> 仍在内存里（Back 后还在第几对门）</td>
+            <td>房间相机位姿。走廊会 <code>resetLook()</code> 朝前</td>
+          </tr>
+          <tr>
+            <td>rooms.json</td>
+            <td>两模块只读</td>
+            <td><code>id, stopIndex, side, label</code></td>
+            <td>三维坐标。坐标写在各自 <code>cameraStops.js</code> / <code>roomLayout.js</code></td>
+          </tr>
+          <tr>
+            <td>房间 Back</td>
+            <td><code>/</code></td>
+            <td>无 payload</td>
+            <td>不把房间桌椅坐标带回走廊</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">以后若做「无缝走进同一场景」，才需要把房间原点接到走廊 <code>getDoorZ(stopIndex)</code> 上。第一期明确不做，以免和物理扩展搅在一起。</p>
+    </section>
+
+    <section id="data">
+      <h2>4. 数据流程图解</h2>
+      <div class="diagram">
+        <svg viewBox="0 0 1040 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="数据流图">
+          <defs>
+            <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#6dcee0"/>
+            </marker>
+          </defs>
+
+          <rect x="30" y="30" width="200" height="70" rx="8" fill="#1b1e26" stroke="#6dcee0"/>
+          <text x="130" y="58" text-anchor="middle" fill="#e8edf4" font-size="13">rooms.json</text>
+          <text x="130" y="78" text-anchor="middle" fill="#9aa3b2" font-size="11">8 条静态房间目录</text>
+
+          <line x1="230" y1="65" x2="290" y2="65" stroke="#6dcee0" stroke-width="2" marker-end="url(#arrow2)"/>
+          <rect x="298" y="20" width="200" height="90" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="398" y="48" text-anchor="middle" fill="#e8edf4" font-size="13">App.jsx 路由</text>
+          <text x="398" y="68" text-anchor="middle" fill="#9aa3b2" font-size="11">/ → 走廊</text>
+          <text x="398" y="88" text-anchor="middle" fill="#9aa3b2" font-size="11">/room/:doorId → 房间</text>
+
+          <line x1="498" y1="50" x2="568" y2="50" stroke="#6dcee0" stroke-width="2" marker-end="url(#arrow2)"/>
+          <rect x="576" y="16" width="210" height="78" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="681" y="44" text-anchor="middle" fill="#e8edf4" font-size="13">Module/Main</text>
+          <text x="681" y="64" text-anchor="middle" fill="#9aa3b2" font-size="11">corridorStore + Canvas</text>
+          <text x="681" y="82" text-anchor="middle" fill="#9aa3b2" font-size="11">stopIndex · cameraPhase</text>
+
+          <line x1="398" y1="110" x2="398" y2="150" stroke="#6dcee0" stroke-width="2" marker-end="url(#arrow2)"/>
+          <line x1="398" y1="150" x2="576" y2="178" stroke="#6dcee0" stroke-width="2" marker-end="url(#arrow2)"/>
+          <rect x="576" y="150" width="210" height="78" rx="8" fill="#1b1e26" stroke="#e8a15a"/>
+          <text x="681" y="178" text-anchor="middle" fill="#e8edf4" font-size="13">Module/door</text>
+          <text x="681" y="198" text-anchor="middle" fill="#9aa3b2" font-size="11">roomStore.phase</text>
+          <text x="681" y="216" text-anchor="middle" fill="#9aa3b2" font-size="11">入场 10s · 无道具点击</text>
+
+          <text x="820" y="48" fill="#6dcee0" font-size="12">点击门 → doorId</text>
+          <line x1="786" y1="55" x2="786" y2="170" stroke="#e8a15a" stroke-width="2" marker-end="url(#arrow2)"/>
+          <text x="798" y="120" fill="#e8a15a" font-size="11">只传 id</text>
+          <text x="820" y="188" fill="#6dcee0" font-size="12">Back → /</text>
+
+          <rect x="30" y="150" width="200" height="78" rx="8" fill="#101218" stroke="#2a2e38"/>
+          <text x="130" y="178" text-anchor="middle" fill="#e8edf4" font-size="13">HTML HUD</text>
+          <text x="130" y="198" text-anchor="middle" fill="#9aa3b2" font-size="11">Profile / 前进文字 / Back</text>
+          <text x="130" y="216" text-anchor="middle" fill="#9aa3b2" font-size="11">不进 3D 世界坐标</text>
+          <line x1="230" y1="190" x2="570" y2="55" stroke="#2a2e38" stroke-dasharray="4 3"/>
+
+          <rect x="30" y="260" width="420" height="70" rx="8" fill="#101218" stroke="#2a2e38" stroke-dasharray="5 4"/>
+          <text x="240" y="288" text-anchor="middle" fill="#7aa2ff" font-size="13">以后：Express /api/rooms + 画/黑板存档</text>
+          <text x="240" y="310" text-anchor="middle" fill="#9aa3b2" font-size="11">替换 json 数据源；道具 id：table / painting / blackboard</text>
+          <line x1="450" y1="295" x2="570" y2="200" stroke="#7aa2ff" stroke-dasharray="5 4" marker-end="url(#arrow2)"/>
+
+          <rect x="480" y="260" width="520" height="140" rx="8" fill="#14161c" stroke="#2a2e38"/>
+          <text x="500" y="286" fill="#e8edf4" font-size="13">运行时状态（内存，不落盘）</text>
+          <text x="500" y="310" fill="#9aa3b2" font-size="12">走廊：stopIndex, cameraPhase, facingDoorId, walkFromZ/ToZ, lookFrom/To</text>
+          <text x="500" y="332" fill="#9aa3b2" font-size="12">房间：phase = ENTER_DARK → LIGHTS_FLICKER → LIGHTS_STABLE</text>
+          <text x="500" y="354" fill="#9aa3b2" font-size="12">网络：只有静态模块与 json import，无 /api、无 fetch 业务</text>
+          <text x="500" y="376" fill="#e07a6a" font-size="12">刷新页面会丢掉 stopIndex；要记住进度才需要后端或 localStorage</text>
+        </svg>
+      </div>
+      <p class="caption">图 4 · 数据流。目录数据单向只读；交互状态在 zustand；跨页唯一业务数据是门 id。</p>
+    </section>
+
+    <section id="todo">
+      <h2>5. 现在需要增加的东西</h2>
+      <p class="lead">按「谁来交、交什么」排列。不要把后端/物理塞进这一批。</p>
+
+      <h3>立刻（为了对上参考图的细腻）</h3>
+      <ul class="need">
+        <li><span class="tag gap">3D 美术</span> 走廊：地板 / 墙裙 / 门板 / 黄铜 的 albedo + roughness + normal（2K 起）。放到 <code>Code/public/textures/Main/</code>。</li>
+        <li><span class="tag gap">3D 美术</span> 房间：金框（最好带雕花法线或 GLB）、画灯、桌凳、天花格子。放到 <code>Code/public/textures/door/</code> 与 <code>public/models/</code>。</li>
+        <li><span class="tag gap">TA + 前端</span> 资产命名规范（米、Y-up、铰链在模型哪一侧）和一份 <code>licenses.txt</code>。</li>
+        <li><span class="tag">前端</span> 有贴图后：换 <code>MeshStandardMaterial</code> 贴图、轻 bloom、收地板反光。布局与状态机不动。</li>
+      </ul>
+
+      <h3>可选增强（仍第一期气质，不必等后端）</h3>
+      <ul class="need">
+        <li>房间入场门更明确地出现在画面左前景（参考 <code>room-interior-v1.png</code>）。</li>
+        <li>走廊墙裙做出矩形线脚（模型或法线），吊灯换成有灯罩的 GLB。</li>
+        <li>HUD 字体更接近原型（小字、低存在感）。不要加菱形准星或地面圆圈。</li>
+      </ul>
+
+      <h3>明确以后再加（现在不要做）</h3>
+      <ul class="need">
+        <li><span class="tag later">后端</span> 画布内容、黑板字、桌子状态的读写 API。</li>
+        <li><span class="tag later">前端交互</span> 点画 / 点黑板 / 点桌子进入编辑（<code>extensions/interact/</code>）。</li>
+        <li><span class="tag later">物理</span> Rapier / Cannon 重力碰撞。</li>
+        <li>走廊与房间合成同一个 Canvas 的无缝步行。</li>
+      </ul>
+
+      <h3>你作为负责人现在只要准备</h3>
+      <ul class="need">
+        <li>第一批贴图或购买/下载的 CC0 包路径（哪怕只有地板+墙+门）。</li>
+        <li>一句话范围：「只升走廊」还是「走廊+房间一起升材质」。</li>
+        <li>不必先招后端；不必再出带准星的原型图。</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    文档位置 <code>System_doc/岗位职责与系统图解.html</code>
+    · 坐标常数来自 <code>cameraStops.js</code> / <code>corridorLayout.js</code> / <code>roomLayout.js</code>
+    · 打开方式：浏览器直接打开本文件即可，无需 dev server。
+  </footer>
+</body>
+</html>

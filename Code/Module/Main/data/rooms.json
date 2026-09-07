@@ -1,0 +1,10 @@
+[
+  { "id": "0", "stopIndex": 0, "side": "left", "label": "0" },
+  { "id": "1", "stopIndex": 0, "side": "right", "label": "1" },
+  { "id": "2", "stopIndex": 1, "side": "left", "label": "2" },
+  { "id": "3", "stopIndex": 1, "side": "right", "label": "3" },
+  { "id": "4", "stopIndex": 2, "side": "left", "label": "4" },
+  { "id": "5", "stopIndex": 2, "side": "right", "label": "5" },
+  { "id": "6", "stopIndex": 3, "side": "left", "label": "6" },
+  { "id": "7", "stopIndex": 3, "side": "right", "label": "7" }
+]

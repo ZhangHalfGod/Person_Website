@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["Module/app/*"],
+      "@main/*": ["Module/Main/*"],
+      "@door/*": ["Module/door/*"]
+    },
+    "jsx": "react-jsx"
+  }
+}
