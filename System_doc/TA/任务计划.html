@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TA — 任务计划</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p { color: var(--muted); max-width: 76ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .tag { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; margin-right: 0.25rem; }
+    .next { background: #2a2118; color: var(--warm); }
+    .later { background: #1a2430; color: var(--blue); }
+    .gap { background: #2a1818; color: var(--red); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>技术美术 <span>/ 任务计划</span></h1>
+    <p>TA 不负责画出木头质感，负责让 3D 美术的 GLB/贴图能进网页：米制、Y-up、铰链轴、命名、面数和贴图体积。第一期管走廊/灯/门；第二期管门内房间。资产规范目前仍是缺口。</p>
+    <nav>
+      <a href="第一期/任务计划.html">第一期规范</a>
+      <a href="第二期/任务计划.html">第二期规范</a>
+      <a href="../3D美术/任务计划.html">3D 美术任务计划</a>
+      <a href="../岗位职责与系统图解.html">岗位总图</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>分期</h2>
+      <table>
+        <thead><tr><th>期</th><th>TA 交付</th><th>卡住前端的点</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag next">第一期</span></td>
+            <td>走廊资产规范、命名表、门铰链约定、2K 预算、<code>licenses.txt</code>、glTF 校验。</td>
+            <td>门必须绕靠墙边转，不能绕几何中心；门牌不能进贴图。</td>
+          </tr>
+          <tr>
+            <td><span class="tag later">第二期</span></td>
+            <td>房间独立原点、家具轴心、画框与空白画芯分离、室内面数上限。</td>
+            <td>房间与走廊不合成一个场景；第一期明确不做无缝步行。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">工具：Blender、glTF 校验（如 gltf.report）、Three.js / 本项目预览。MCP 已连 Blender 5.2.1 LTS，可在软件里改轴、导 GLB。</p>
+    </section>
+
+    <section>
+      <h2>全期通用硬规则</h2>
+      <ul>
+        <li>单位：米。轴向：Y-up。右手系，与 Three.js 一致。</li>
+        <li>网页贴图用 JPG（平铺 2K、五金 512）；源 PNG 不进 <code>public</code>。步骤见 <a href="../3D美术/材质交付操作.md">3D 美术 · 材质交付操作</a>。</li>
+        <li>网页 GLB 只带几何，不要内嵌贴图；前端 <code>MeshStandardMaterial</code> 挂共用 JPG。</li>
+        <li>4K 必须单独批准（网页包体）。</li>
+        <li>禁止把 <code>label</code> 烤进门板。禁止为本期加物理碰撞网格。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>现状</h2>
+      <ul>
+        <li><span class="tag gap">缺口</span> 还没有书面资产规范与 <code>licenses.txt</code>。</li>
+        <li>前端走廊/房间交互已通，用的是程序化材质；TA 验收通过后前端才换资源。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>System_doc/TA/任务计划.html</footer>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Navigate, useParams } from 'react-router-dom'
 import rooms from '@main/data/rooms.json'
@@ -51,7 +51,9 @@ export default function RoomPage() {
           camera.lookAt(CAM_LOOK[0], CAM_LOOK[1], CAM_LOOK[2])
         }}
       >
-        <RoomScene />
+        <Suspense fallback={null}>
+          <RoomScene />
+        </Suspense>
       </Canvas>
       <RoomHud label={room.label} />
     </div>

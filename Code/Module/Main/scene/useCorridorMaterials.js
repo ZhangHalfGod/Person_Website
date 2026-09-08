@@ -1,86 +1,151 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
+import { useTexture } from '@react-three/drei'
 
-function makeWoodMap({ base, dark, grain = 70 }) {
-  const canvas = document.createElement('canvas')
-  canvas.width = 512
-  canvas.height = 512
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = base
-  ctx.fillRect(0, 0, 512, 512)
-  for (let i = 0; i < grain; i += 1) {
-    const x = Math.random() * 512
-    ctx.strokeStyle = dark
-    ctx.globalAlpha = 0.06 + Math.random() * 0.14
-    ctx.lineWidth = 1 + Math.random() * 2.4
-    ctx.beginPath()
-    ctx.moveTo(x, 0)
-    ctx.bezierCurveTo(x + 8, 180, x - 10, 340, x + (Math.random() * 12 - 6), 512)
-    ctx.stroke()
-  }
-  ctx.globalAlpha = 1
-  const tex = new THREE.CanvasTexture(canvas)
+function prep(tex, { srgb = false, repeat = [1, 1] } = {}) {
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.RepeatWrapping
   tex.anisotropy = 8
-  tex.colorSpace = THREE.SRGBColorSpace
+  tex.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
+  tex.repeat.set(repeat[0], repeat[1])
+  tex.needsUpdate = true
   return tex
 }
 
+function cloneRepeat(tex, repeat, srgb) {
+  const copy = tex.clone()
+  copy.wrapS = THREE.RepeatWrapping
+  copy.wrapT = THREE.RepeatWrapping
+  copy.anisotropy = 8
+  copy.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
+  copy.repeat.set(repeat[0], repeat[1])
+  copy.needsUpdate = true
+  return copy
+}
+
 export function useCorridorMaterials() {
+  const maps = useTexture({
+    woodMap: '/textures/Main/wainscot_albedo.jpg',
+    woodRough: '/textures/Main/wainscot_roughness.jpg',
+    woodNormal: '/textures/Main/wainscot_normal.jpg',
+    brassMap: '/textures/Main/brass_albedo.jpg',
+    brassRough: '/textures/Main/brass_roughness.jpg',
+    brassNormal: '/textures/Main/brass_normal.jpg'
+  })
+
+  useLayoutEffect(() => {
+    prep(maps.woodMap, { srgb: true, repeat: [14, 1.15] })
+    prep(maps.woodRough, { repeat: [14, 1.15] })
+    prep(maps.woodNormal, { repeat: [14, 1.15] })
+    prep(maps.brassMap, { srgb: true, repeat: [2, 2] })
+    prep(maps.brassRough, { repeat: [2, 2] })
+    prep(maps.brassNormal, { repeat: [2, 2] })
+  }, [maps])
+
   return useMemo(() => {
-    const floorMap = makeWoodMap({ base: '#2c1c12', dark: '#140c08', grain: 90 })
-    floorMap.repeat.set(2.2, 14)
+    const floorMap = cloneRepeat(maps.woodMap, [2.2, 14], true)
+    const floorRough = cloneRepeat(maps.woodRough, [2.2, 14], false)
+    const floorNormal = cloneRepeat(maps.woodNormal, [2.2, 14], false)
 
-    const doorMap = makeWoodMap({ base: '#3d2618', dark: '#1a100a', grain: 50 })
-    doorMap.repeat.set(1.2, 2.2)
-
-    const wainscotMap = makeWoodMap({ base: '#4a301e', dark: '#24160e', grain: 55 })
-    wainscotMap.repeat.set(1.4, 8)
+    const doorMap = cloneRepeat(maps.woodMap, [1.15, 2.15], true)
+    const doorRough = cloneRepeat(maps.woodRough, [1.15, 2.15], false)
+    const doorNormal = cloneRepeat(maps.woodNormal, [1.15, 2.15], false)
 
     return {
       floor: new THREE.MeshStandardMaterial({
         map: floorMap,
-        roughness: 0.38,
-        metalness: 0.06,
+        roughnessMap: floorRough,
+        normalMap: floorNormal,
+        roughness: 0.28,
+        metalness: 0.1,
+        envMapIntensity: 0.7,
         color: '#cfc3b4'
       }),
       wainscot: new THREE.MeshStandardMaterial({
-        map: wainscotMap,
-        roughness: 0.62,
-        metalness: 0.02,
+        map: maps.woodMap,
+        roughnessMap: maps.woodRough,
+        normalMap: maps.woodNormal,
+        roughness: 0.48,
+        metalness: 0.06,
+        envMapIntensity: 0.45,
         color: '#d9cbb8'
       }),
       upperWall: new THREE.MeshStandardMaterial({
-        color: '#0c0d11',
-        roughness: 0.96,
-        metalness: 0
+        color: '#4e463e',
+        roughness: 0.94,
+        metalness: 0,
+        envMapIntensity: 0
       }),
       ceiling: new THREE.MeshStandardMaterial({
-        color: '#07080b',
-        roughness: 1,
-        metalness: 0
+        color: '#6a6258',
+        roughness: 0.97,
+        metalness: 0,
+        envMapIntensity: 0
       }),
       door: new THREE.MeshStandardMaterial({
         map: doorMap,
-        roughness: 0.55,
-        metalness: 0.04,
-        color: '#cbb7a2'
+        roughnessMap: doorRough,
+        normalMap: doorNormal,
+        roughness: 0.46,
+        metalness: 0.06,
+        envMapIntensity: 0.48,
+        color: '#d4c6b4'
       }),
       doorPanel: new THREE.MeshStandardMaterial({
-        color: '#2a1a10',
-        roughness: 0.7,
-        metalness: 0.03
+        map: doorMap,
+        roughnessMap: doorRough,
+        normalMap: doorNormal,
+        roughness: 0.58,
+        metalness: 0.05,
+        envMapIntensity: 0.38,
+        color: '#c6b49e'
       }),
       brass: new THREE.MeshStandardMaterial({
-        color: '#c4a056',
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        color: '#e8d0a0',
+        roughness: 0.28,
+        metalness: 0.9,
+        envMapIntensity: 1.1
+      }),
+      pendantOuter: new THREE.MeshStandardMaterial({
+        color: '#1c1814',
+        roughness: 0.88,
+        metalness: 0.08,
+        envMapIntensity: 0.22
+      }),
+      pendantInner: new THREE.MeshStandardMaterial({
+        color: '#c9a06a',
         roughness: 0.35,
-        metalness: 0.72
+        metalness: 0.12,
+        emissive: '#ff9a4a',
+        emissiveIntensity: 0.28,
+        envMapIntensity: 0.4
+      }),
+      pendantCord: new THREE.MeshStandardMaterial({
+        color: '#9a8c7c',
+        roughness: 0.52,
+        metalness: 0.18,
+        envMapIntensity: 0.4
+      }),
+      pendantCanopy: new THREE.MeshStandardMaterial({
+        color: '#5a4c3e',
+        roughness: 0.45,
+        metalness: 0.42,
+        envMapIntensity: 0.5
+      }),
+      pendantRim: new THREE.MeshStandardMaterial({
+        color: '#2a241c',
+        roughness: 0.32,
+        metalness: 0.55,
+        envMapIntensity: 0.7
       }),
       endCap: new THREE.MeshStandardMaterial({
-        color: '#050506',
-        roughness: 1
+        color: '#1a1614',
+        roughness: 0.92,
+        envMapIntensity: 0.08
       })
     }
-  }, [])
+  }, [maps])
 }

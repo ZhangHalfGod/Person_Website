@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第二期 · 现网进度（2026-09-08）</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p { color: var(--muted); max-width: 80ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .ok { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; background: #1a2a20; color: var(--green); }
+    .now { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; background: #2a2118; color: var(--warm); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>第二期现网进度 <span>/ 房间外观升档</span></h1>
+    <p>
+      入场动画（开门、灯闪 10 秒）沿用第一期，不改进状态机。本期换房间贴图和瘦 GLB；台灯拉线是唯一点击。
+      <code>npm run dev</code> → <code>http://localhost:5173/room/0</code>。
+    </p>
+    <nav>
+      <a href="可执行文档.md">可执行文档</a>
+      <a href="../../3D美术/第二期/任务计划.html">3D 美术第二期</a>
+      <a href="../../3D美术/材质交付操作.md">材质交付操作</a>
+      <a href="../第一期/现网进度.html">第一期现网进度</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>1. 已挂上（8 门共用）</h2>
+      <table>
+        <thead><tr><th>资产</th><th>状态</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>房间地板 / 墙</td>
+            <td><span class="ok">JPG</span></td>
+            <td><code>textures/door/room_floor_*.jpg</code>（Poly Haven dark_wooden_planks）、<code>room_wall_*.jpg</code>（与走廊 wainscot 同套）。</td>
+          </tr>
+          <tr>
+            <td>桌 / 三张凳</td>
+            <td><span class="ok">瘦 GLB</span></td>
+            <td>对照 <code>room-interior-v1.png</code>：厚板托架桌（凹槽立柱、圆包脚、近地横档）+ 方座外撇腿凳。<code>table.glb</code> <code>stool.glb</code>，原点地面，前端实例化三张凳。</td>
+          </tr>
+          <tr>
+            <td>桌上台灯</td>
+            <td><span class="ok">瘦 GLB</span></td>
+            <td><code>table_lamp.glb</code> 放在桌面：扇形褶皱灯罩、凹凸黄铜柱、大圆盘底座；灯罩内垂出拉线。点拉线开/关，入场 10 秒闪灯时亮度仍乘总灯光。</td>
+          </tr>
+          <tr>
+            <td>画框 + 画灯</td>
+            <td><span class="ok">瘦 GLB</span></td>
+            <td><code>picture_frame.glb</code>；画芯仍是独立白 mesh。<code>picture_lamp.glb</code> 在画上方。</td>
+          </tr>
+          <tr>
+            <td>天花格子</td>
+            <td><span class="ok">瘦 GLB</span></td>
+            <td><code>ceiling_coffers.glb</code>，放在 <code>y = ROOM_H</code>。</td>
+          </tr>
+          <tr>
+            <td>黑板</td>
+            <td><span class="ok">占位加深</span></td>
+            <td>仍用前端框+近白板面（规范：框简单深色、无字）。未单独出 GLB。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>2. 明确不做</h2>
+      <ul>
+        <li>画芯图案、黑板写字、桌/画/黑板编辑器、存档、物理。</li>
+        <li>除台灯拉线外，其它道具无 onClick。</li>
+        <li>把房间原点接到走廊 <code>getDoorZ</code>。</li>
+        <li>GLB 内嵌贴图；闪灯动画轨打进模型。</li>
+      </ul>
+    </section>
+    <section>
+      <h2>3. 下一刀</h2>
+      <ul>
+        <li>气质对照仍可微调（灯罩远看是否够扇形、包脚是否够圆）。工作文件：<code>System_doc/3D美术/第二期/room_phase2.blend</code>。</li>
+        <li>画芯 / 黑板内容、桌子编辑器仍以后做。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>System_doc/前端/第二期/现网进度.html · 2026-09-08</footer>
+</body>
+</html>

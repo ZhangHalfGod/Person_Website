@@ -1,0 +1,36 @@
+# Profile 3D assets — source licenses
+# CC0: https://creativecommons.org/publicdomain/zero/1.0/
+
+wood_cabinet_worn_long  (corridor wood + room walls)
+  source: https://polyhaven.com/a/wood_cabinet_worn_long
+  license: CC0 1.0
+  used_in: Code/public/textures/Main/wainscot_*.jpg
+           Code/public/textures/door/room_wall_*.jpg
+           floor/wainscot/door in Code/Module/Main/scene/useCorridorMaterials.js
+           System_doc/3D美术/第一期/corridor_phase1.blend
+
+dark_wooden_planks  (room floor; corridor copy unused on the website)
+  source: https://polyhaven.com/a/dark_wooden_planks
+  license: CC0 1.0
+  used_in: Code/public/textures/door/room_floor_*.jpg
+           Code/public/textures/Main/floor_*.jpg
+           System_doc/3D美术/第一期/corridor_phase1.blend
+
+
+
+Brass knobs / plates / lamp collars / room gold frame
+  source: original generated brushed-metal maps (project original)
+  license: project original
+  used_in: Code/public/textures/Main/brass_albedo.jpg
+           brass_roughness.jpg  brass_normal.jpg  (512, JPEG)
+           metalness is a constant 0.9 on MeshStandardMaterial, no map
+           room gold/brass in Code/Module/door/scene/useRoomMaterials.js
+
+Room GLBs (geometry only, no embedded textures)
+  files: Code/public/models/table.glb stool.glb table_lamp.glb
+         picture_frame.glb picture_lamp.glb ceiling_coffers.glb
+  work: System_doc/3D美术/第二期/room_phase2.blend
+        System_doc/3D美术/第二期/_build_phase2_assets.py
+        System_doc/3D美术/第二期/_build_table_stool_lamp.py
+
+

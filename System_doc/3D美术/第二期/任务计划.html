@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D 美术 · 第二期 — 门内房间</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p, .lead { color: var(--muted); max-width: 76ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3D 美术 · 第二期 <span>/ 门内房间材质与模型</span></h1>
+    <p>第一期走廊、灯、门完成后再开。8 个门共用同一套室内资产。前端入场动画（开门、灯闪 10 秒）已有，本期只升外观。</p>
+    <nav>
+      <a href="../../前端/第二期/现网进度.html">第二期现网进度</a>
+      <a href="../材质交付操作.md">材质交付操作</a>
+      <a href="../任务计划.html">总计划</a>
+      <a href="../第一期/任务计划.html">第一期（走廊）</a>
+      <a href="../../TA/第二期/任务计划.html">TA 第二期</a>
+      <a href="UI设计规范.md">房间 UI 规范</a>
+      <a href="房间页范围.md">房间页范围</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>范围</h2>
+      <table>
+        <thead><tr><th>做</th><th>不做</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>房间地板/墙/天花格子、金框或深木雕花框、画灯、实心木桌、2～3 张木凳、入场门外观（可复用一期门材质）。</td>
+            <td>画芯画风景人物、黑板写字、桌/画/黑板编辑器、存档 API、重力碰撞、与走廊合成同一 Canvas。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">画芯纯白、黑板近白，留给以后交互。框要精美。房间约 6.6 × 8.0 m，原点在地面中心，与走廊坐标<strong>不共用</strong>。贴图交前端前按 <a href="../材质交付操作.md">材质交付操作</a> 压成 JPG，GLB 不要内嵌贴图。</p>
+    </section>
+
+    <section>
+      <h2>逐步任务</h2>
+      <table>
+        <thead><tr><th>#</th><th>任务</th><th>输出</th></tr></thead>
+        <tbody>
+          <tr><td>2.1</td><td>按房间尺寸搭白模：桌在前方，画面左为画，画面右为黑板，入场门在 −Z 墙。</td><td>工作 <code>.blend</code></td></tr>
+          <tr><td>2.2</td><td>房间木地板 / 暗墙 PBR（可与走廊区分，仍是暗木旅馆气质）。</td><td>网页 <code>room_floor_*.jpg</code> <code>room_wall_*.jpg</code>（源可 PNG，见材质交付操作）</td></tr>
+          <tr><td>2.3</td><td>金框：雕花法线或带几何的 GLB；画芯保持空白 mesh。</td><td><code>picture_frame.glb</code></td></tr>
+          <tr><td>2.4</td><td>画灯（墙灯 / 画上方射灯）。</td><td><code>picture_lamp.glb</code></td></tr>
+          <tr><td>2.5</td><td>对照目标图：厚板托架桌（凹槽立柱、圆包脚、近地横档）+ 方座外撇腿凳 2～3 张，无桌布。</td><td><code>table.glb</code> <code>stool.glb</code></td></tr>
+          <tr><td>2.6</td><td>天花格子（模型或法线）。</td><td><code>ceiling_coffers.glb</code> 或贴图</td></tr>
+          <tr><td>2.7</td><td>桌上复古台灯：扇形灯罩围住灯泡、凹凸金属柱、大圆盘底座、灯罩内拉线。</td><td><code>table_lamp.glb</code></td></tr>
+          <tr><td>2.8</td><td>交 TA 过轴心、面数；前端只换资产，不改进房间状态机。</td><td><code>Code/public/textures/door/</code> 与 <code>models/</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>道具 id（给以后交互预留；本期仅台灯拉线可点）</h2>
+      <table>
+        <thead><tr><th>id</th><th>外观</th></tr></thead>
+        <tbody>
+          <tr><td><code>table</code></td><td>实心厚木托架桌</td></tr>
+          <tr><td><code>stool-1..n</code></td><td>实心木凳</td></tr>
+          <tr><td><code>table-lamp</code></td><td>桌上复古台灯；点 <code>PullCord</code> 开/关</td></tr>
+          <tr><td><code>painting</code></td><td>白画芯 + 精美框</td></tr>
+          <tr><td><code>blackboard</code></td><td>近白板面 + 深色/木框</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>验收</h2>
+      <ul>
+        <li>对照 <code>room-interior-v1.png</code>：暗木、金框、桌凳、空白画与黑板。</li>
+        <li>8 个 <code>doorId</code> 共用资产，只换 HUD 的 <code>label</code>。</li>
+        <li>画芯/黑板无图案无字。无物理网格、无后端资源。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>System_doc/3D美术/第二期/任务计划.html</footer>
+</body>
+</html>

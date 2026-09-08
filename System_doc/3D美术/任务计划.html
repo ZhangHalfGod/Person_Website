@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D 美术 — 任务计划</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p, .lead { color: var(--muted); max-width: 76ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    h3 { font-size: 1.02rem; color: var(--warm); margin: 1.4rem 0 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .tag { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; margin-right: 0.25rem; }
+    .now { background: #1a2a20; color: var(--green); }
+    .next { background: #2a2118; color: var(--warm); }
+    .later { background: #1a2430; color: var(--blue); }
+    .gap { background: #2a1818; color: var(--red); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3D 美术 <span>/ 任务计划</span></h1>
+    <p>细腻外观由本岗位交付模型与 PBR 贴图。前端交互已通，当前是程序化木纹 + box。第一期只做走廊、天花灯、门的材质；门内房间是第二期。</p>
+    <nav>
+      <a href="材质交付操作.md">材质交付操作（JPG + 瘦 GLB）</a>
+      <a href="第一期/任务计划.html">第一期任务</a>
+      <a href="第二期/任务计划.html">第二期任务</a>
+      <a href="../TA/任务计划.html">TA 任务计划</a>
+      <a href="../岗位职责与系统图解.html">岗位总图</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>分期总览</h2>
+      <table>
+        <thead>
+          <tr><th>期</th><th>做</th><th>不做</th><th>落盘</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag next">第一期</span> 走廊</td>
+            <td>地板、墙裙、门板、黄铜、天花吊灯。对上 <code>profile-corridor-v1.png</code>。</td>
+            <td>房间家具、金框雕花、画芯内容、后端、物理。</td>
+            <td><code>Code/public/textures/Main/</code><br /><code>Code/public/models/</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag later">第二期</span> 门内</td>
+            <td>房间木饰、金框、画灯、桌凳、天花格子。对上 <code>room-interior-v1.png</code>。</td>
+            <td>画/黑板可写内容、桌画黑板编辑器、无缝走进同一场景。</td>
+            <td><code>Code/public/textures/door/</code><br /><code>Code/public/models/</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">门牌文字由前端读 <code>label</code> 单独画，禁止烤进门板贴图。工具：Blender（本仓库 MCP 已连通 5.2.1 LTS）、Substance Painter、或 Poly Haven CC0。</p>
+    </section>
+
+    <section>
+      <h2>工具与输出格式</h2>
+      <p class="lead">制作可用 PNG 或带图的预览 GLB。给前端必须拆图、压 JPG、再导不带贴图的瘦 GLB。完整步骤见 <a href="材质交付操作.md">材质交付操作.md</a>。</p>
+      <table>
+        <thead>
+          <tr><th>工作</th><th>工具</th><th>输出</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>可平铺的木头 / 墙 / 黄铜（制作）</td>
+            <td>Substance Painter 或 Poly Haven 纹理套件</td>
+            <td>源：PNG。网页：<code>*_albedo.jpg</code> / <code>*_roughness.jpg</code> / <code>*_normal.jpg</code></td>
+          </tr>
+          <tr>
+            <td>有造型的灯、门扇、线脚</td>
+            <td>Blender 建模 + UV</td>
+            <td>网页：瘦 <code>.glb</code>（米制、Y-up，<strong>不要内嵌贴图</strong>）。JPG 由前端共用。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>第一期资产（走廊 / 灯 / 门）</h2>
+      <p class="lead">尺寸对齐代码：宽 4.5m、高 3.55m、门 0.96×2.18×0.07m，灯在天花中线 <code>x = 0</code>。</p>
+      <table>
+        <thead>
+          <tr><th>资产</th><th>形式</th><th>建议文件名</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>地板</td><td>与墙裙同一套（前端已锁定）</td><td><code>wainscot_albedo.jpg</code> + roughness/normal</td></tr>
+          <tr><td>墙裙（高 1.58m）</td><td>平铺 PBR，可加线脚法线</td><td><code>wainscot_*.jpg</code></td></tr>
+          <tr><td>门板</td><td>PBR 或带凹凸的门 GLB</td><td><code>corridor_door.glb</code>（瘦）+ 共用 <code>wainscot_*.jpg</code></td></tr>
+          <tr><td>黄铜（把手、门牌框）</td><td>PBR，metalness 高</td><td><code>brass_*.jpg</code>（512）</td></tr>
+          <tr><td>吊灯灯罩</td><td>GLB，暖色约 <code>#ffb366</code></td><td><code>ceiling_pendant.glb</code></td></tr>
+        </tbody>
+      </table>
+      <p><a href="第一期/任务计划.html">打开第一期逐步清单 →</a></p>
+    </section>
+
+    <section>
+      <h2>第二期资产（门内房间）</h2>
+      <p class="lead">房间是另一套原点、另一 Canvas。画芯和黑板面保持空白，只做框和家具。</p>
+      <ul>
+        <li>金框（雕花法线或 GLB）</li>
+        <li>画灯、托架桌、2～3 张木凳、桌上复古台灯</li>
+        <li>天花格子、房间地板 / 暗墙</li>
+      </ul>
+      <p><a href="第二期/任务计划.html">打开第二期逐步清单 →</a></p>
+    </section>
+
+    <section>
+      <h2>本岗位现状</h2>
+      <ul>
+        <li><span class="tag now">已有</span> 走廊：<code>wainscot_*.jpg</code>、<code>ceiling_pendant.glb</code>、<code>corridor_door.glb</code>、<code>brass_*.jpg</code>。</li>
+        <li><span class="tag now">第二期已挂上</span> 房间 JPG + <code>table.glb</code> <code>stool.glb</code> <code>table_lamp.glb</code> <code>picture_frame.glb</code> <code>picture_lamp.glb</code> <code>ceiling_coffers.glb</code>。进度：<a href="../前端/第二期/现网进度.html">第二期现网进度</a>。</li>
+        <li>布局和状态机不动。材质交付：<a href="材质交付操作.md">JPG + 瘦 GLB</a>。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>System_doc/3D美术/任务计划.html · 原件对照仍以 Main_Page / door_Page 为准</footer>
+</body>
+</html>

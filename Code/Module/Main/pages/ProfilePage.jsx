@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import ProfileHud from '../overlay/ProfileHud.jsx'
@@ -96,13 +96,16 @@ export default function ProfilePage() {
         className="absolute inset-0 h-full w-full"
         shadows
         dpr={[1, 1.75]}
+        resize={{ debounce: 0, offsetSize: true }}
         gl={{ antialias: true, preserveDrawingBuffer: true }}
         camera={{ fov: 72, near: 0.08, far: 90, position: [0, 1.56, 0.01] }}
         onCreated={({ gl }) => {
-          gl.toneMappingExposure = 1.15
+          gl.toneMappingExposure = 1.12
         }}
       >
-        <CorridorScene />
+        <Suspense fallback={null}>
+          <CorridorScene />
+        </Suspense>
       </Canvas>
       <ProfileHud />
     </div>

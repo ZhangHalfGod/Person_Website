@@ -5,6 +5,7 @@ import RoomInterior from './RoomInterior.jsx'
 import EntryDoor from './EntryDoor.jsx'
 import FlickerLights from './FlickerLights.jsx'
 import Furniture from './Furniture.jsx'
+import TableLamp from './TableLamp.jsx'
 import Painting from './Painting.jsx'
 import Blackboard from './Blackboard.jsx'
 import { CAM_LOOK, CAM_POS } from './roomLayout.js'
@@ -36,6 +37,7 @@ export default function RoomScene() {
       <EntryDoor materials={materials} startedAt={startedAt} />
       <FlickerLights startedAt={startedAt} />
       <Furniture materials={materials} />
+      <TableLamp materials={materials} startedAt={startedAt} />
       <Painting materials={materials} />
       <Blackboard materials={materials} />
     </>

@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { HALF_W, PAINTING, BOARD, TABLE, ROOM_H } from './roomLayout.js'
+import { HALF_W, PAINTING, BOARD, ROOM_H } from './roomLayout.js'
 import { FLICKER_DURATION, flickerFactor, lightBase } from './introTimeline.js'
 import { ROOM_PHASE, useRoomStore } from '../store/roomStore.js'
 import { useIntroTick } from './useIntroTick.js'
@@ -8,8 +8,7 @@ const LAMPS = [
   { pos: [0.05, ROOM_H - 0.22, 0.15], target: 22, dist: 9, phase: 0.2, shadow: true },
   { pos: [0.1, ROOM_H - 0.28, 1.85], target: 16, dist: 8, phase: 1.4, shadow: false },
   { pos: [HALF_W - 0.28, PAINTING.y + PAINTING.h / 2 + 0.16, PAINTING.z], target: 9, dist: 4.5, phase: 2.5, shadow: false },
-  { pos: [-HALF_W + 0.28, BOARD.y + BOARD.h / 2 + 0.14, BOARD.z], target: 10, dist: 5, phase: 3.3, shadow: false },
-  { pos: [2.35, 1.05, 3.15], target: 4.5, dist: 3.8, phase: 0.9, shadow: false }
+  { pos: [-HALF_W + 0.28, BOARD.y + BOARD.h / 2 + 0.14, BOARD.z], target: 10, dist: 5, phase: 3.3, shadow: false }
 ]
 
 function Pendant({ position }) {
@@ -82,10 +81,6 @@ export default function FlickerLights({ startedAt }) {
           shadow-bias={-0.012}
         />
       ))}
-      <mesh position={[TABLE.x + 2.17, 0.92, 3.15]}>
-        <cylinderGeometry args={[0.04, 0.05, 0.18, 10]} />
-        <meshStandardMaterial color="#c4a056" emissive="#ffb366" emissiveIntensity={0.35} />
-      </mesh>
     </group>
   )
 }

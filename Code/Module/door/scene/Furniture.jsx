@@ -1,56 +1,43 @@
-import React from 'react'
+import React, { useLayoutEffect, useMemo } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
 import { TABLE } from './roomLayout.js'
 
-function Stool({ position, materials }) {
+const TABLE_URL = '/models/table.glb'
+const STOOL_URL = '/models/stool.glb'
+
+function furnitureMat(name, materials) {
+  if (/Rung/i.test(name)) return materials.furnitureDark
+  return materials.furniture
+}
+
+function GltfProp({ url, materials, position, userData }) {
+  const { scene } = useGLTF(url)
+  const clone = useMemo(() => cloneGltf(scene), [scene])
+  const root = useMemo(() => clone.getObjectByName('TableRoot') || clone.getObjectByName('StoolRoot') || clone, [clone])
+
+  useLayoutEffect(() => {
+    applyNamedMaterials(root, (name) => furnitureMat(name, materials))
+  }, [root, materials])
+
   return (
-    <group position={position} userData={{ id: 'stool' }}>
-      <mesh position={[0, 0.47, 0]} castShadow receiveShadow material={materials.furniture}>
-        <boxGeometry args={[0.36, 0.05, 0.36]} />
-      </mesh>
-      {[
-        [-0.13, 0.22, -0.13],
-        [0.13, 0.22, -0.13],
-        [-0.13, 0.22, 0.13],
-        [0.13, 0.22, 0.13]
-      ].map((pos, i) => (
-        <mesh key={i} position={pos} castShadow material={materials.furnitureDark}>
-          <boxGeometry args={[0.045, 0.44, 0.045]} />
-        </mesh>
-      ))}
+    <group position={position} userData={userData}>
+      <primitive object={root} />
     </group>
   )
 }
 
 export default function Furniture({ materials }) {
-  const { x, z, w, d, h } = TABLE
-  const topY = h
-  const legH = h - 0.06
-  const inset = 0.08
-
+  const { x, z } = TABLE
   return (
     <group>
-      <group position={[x, 0, z]} userData={{ id: 'table' }}>
-        <mesh position={[0, topY, 0]} castShadow receiveShadow material={materials.furniture}>
-          <boxGeometry args={[w, 0.08, d]} />
-        </mesh>
-        <mesh position={[0, topY - 0.11, 0]} material={materials.furnitureDark}>
-          <boxGeometry args={[w - 0.12, 0.06, d - 0.12]} />
-        </mesh>
-        {[
-          [-(w / 2 - inset), legH / 2, -(d / 2 - inset)],
-          [w / 2 - inset, legH / 2, -(d / 2 - inset)],
-          [-(w / 2 - inset), legH / 2, d / 2 - inset],
-          [w / 2 - inset, legH / 2, d / 2 - inset]
-        ].map((pos, i) => (
-          <mesh key={i} position={pos} castShadow material={materials.furnitureDark}>
-            <boxGeometry args={[0.08, legH, 0.08]} />
-          </mesh>
-        ))}
-      </group>
-
-      <Stool position={[x - 0.58, 0, z - 0.72]} materials={materials} />
-      <Stool position={[x + 0.62, 0, z - 0.58]} materials={materials} />
-      <Stool position={[x - 0.12, 0, z + 0.78]} materials={materials} />
+      <GltfProp url={TABLE_URL} materials={materials} position={[x, 0, z]} userData={{ id: 'table' }} />
+      <GltfProp url={STOOL_URL} materials={materials} position={[x - 0.58, 0, z - 0.72]} userData={{ id: 'stool-1' }} />
+      <GltfProp url={STOOL_URL} materials={materials} position={[x + 0.62, 0, z - 0.58]} userData={{ id: 'stool-2' }} />
+      <GltfProp url={STOOL_URL} materials={materials} position={[x - 0.12, 0, z + 0.78]} userData={{ id: 'stool-3' }} />
     </group>
   )
 }
+
+useGLTF.preload(TABLE_URL)
+useGLTF.preload(STOOL_URL)

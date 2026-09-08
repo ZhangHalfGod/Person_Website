@@ -21,5 +21,7 @@ export const CAM_POS = [0.55, CAM_Y, -HALF_D + 0.62]
 export const CAM_LOOK = [0.08, 1.13, 2.05]
 
 export const TABLE = { x: 0.18, z: 1.48, w: 1.72, d: 0.86, h: 0.76 }
+/** Table lamp origin sits on the tabletop, slightly toward +X (screen-left). */
+export const TABLE_LAMP = { x: 0.42, z: 1.38 }
 export const PAINTING = { z: 0.28, y: 1.58, w: 0.78, h: 1.08 }
 export const BOARD = { z: 0.72, y: 1.52, w: 1.78, h: 0.98 }

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>第一期 · 天花吊灯物理交互与阴影</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p, .lead { color: var(--muted); max-width: 80ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    h3 { font-size: 1.02rem; color: var(--warm); margin: 1.4rem 0 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .tag { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; margin-right: 0.25rem; }
+    .gap { background: #2a1818; color: var(--red); }
+    .ok { background: #1a2a20; color: var(--green); }
+    .now { background: #2a2118; color: var(--warm); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    .warn { background: var(--panel); border-left: 3px solid var(--red); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    .diagram { background: #101218; border: 1px solid var(--line); border-radius: 8px; padding: 0.8rem; overflow-x: auto; margin: 0.8rem 0 1.2rem; }
+    .diagram svg { display: block; max-width: 100%; height: auto; }
+    .caption { color: var(--muted); font-size: 0.85rem; margin: -0.4rem 0 1.2rem; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>天花吊灯 <span>/ 物理交互与阴影问题</span></h1>
+    <p>
+      记录日：2026-09-08。第一期走廊灯当前实现与真实「伞罩 / 扇形灯罩」不符：口朝上、灯泡在罩外、灯光不经过半透明网膜。
+      本文只分析，不改代码。对照图 <a href="../../../Main_Page/Start/profile-corridor-v1.png">profile-corridor-v1.png</a>。
+    </p>
+    <nav>
+      <a href="#expect">正确物理</a>
+      <a href="#now">当前实现</a>
+      <a href="#bugs">根因</a>
+      <a href="#shadow">阴影</a>
+      <a href="#fix">修复方向</a>
+      <a href="../../../3D美术/第一期/任务计划.html">3D 美术第一期</a>
+      <a href="../../../前端/第一期/现网进度.html">现网进度</a>
+    </nav>
+  </header>
+  <main>
+    <section id="expect">
+      <h2>1. 正确的物理世界（要的效果）</h2>
+      <p class="lead">一盏旅馆走廊吊灯：不透明或半透明的扇形 / 锥形罩，<strong>大口朝下</strong>，<strong>顶部密封</strong>，灯泡藏在罩腔内。</p>
+      <table>
+        <thead><tr><th>路径</th><th>物理过程</th><th>画面上应看到</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>直射（开口向下）</td>
+            <td>光线几乎不受挡，按距离平方衰减打到地板和墙裙。</td>
+            <td>灯下地板最亮；门和墙<strong>下半</strong>受光。这是主灯塘。</td>
+          </tr>
+          <tr>
+            <td>侧向透过网膜</td>
+            <td>罩壁是半透明 3D 网格（羊皮 / 布 / 磨砂），吸收 + 散射一部分光。</td>
+            <td>墙壁越往上越暗，是被罩挡住后的漏光，不是第二盏灯。</td>
+          </tr>
+          <tr>
+            <td>向上</td>
+            <td>罩顶密封，没有开口。只有极弱的散射，几乎到不了天花。</td>
+            <td>天花和上门墙接近黑。不应出现灯罩上方一圈亮斑。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="diagram">
+        <svg viewBox="0 0 1040 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="正确灯罩剖面">
+          <text x="520" y="28" text-anchor="middle" fill="#9aa3b2" font-size="14">正确：口朝下 · 灯泡在腔内 · 顶密封</text>
+          <rect x="40" y="48" width="960" height="18" fill="#1a1c22" />
+          <text x="60" y="62" fill="#9aa3b2" font-size="11">天花（应接近全黑）</text>
+          <line x1="520" y1="66" x2="520" y2="92" stroke="#3a3228" stroke-width="4" />
+          <polygon points="520,92 455,168 585,168" fill="none" stroke="#c4b08a" stroke-width="3" />
+          <polygon points="510,96 530,96 575,164 465,164" fill="#c4b08a" fill-opacity="0.18" />
+          <circle cx="520" cy="138" r="10" fill="#ffd9a8" />
+          <text x="600" y="118" fill="#6dcee0" font-size="12">密封顶（无开口）</text>
+          <text x="600" y="148" fill="#e8a15a" font-size="12">灯泡在扇形腔内</text>
+          <text x="600" y="176" fill="#6bcb8b" font-size="12">大口朝下 = 直射口</text>
+          <path d="M520,168 L400,300" stroke="#e8a15a" stroke-width="1.5" fill="none" opacity="0.85" />
+          <path d="M520,168 L640,300" stroke="#e8a15a" stroke-width="1.5" fill="none" opacity="0.85" />
+          <path d="M520,168 L480,300" stroke="#e8a15a" stroke-width="4" fill="none" opacity="0.35" />
+          <path d="M520,168 L560,300" stroke="#e8a15a" stroke-width="4" fill="none" opacity="0.35" />
+          <text x="80" y="250" fill="#e8a15a" font-size="12">侧向：被半透明网膜挡住 → 墙越往上越暗</text>
+          <text x="80" y="310" fill="#6bcb8b" font-size="12">直射：地板 / 墙裙最亮</text>
+          <rect x="40" y="318" width="960" height="12" fill="#3d2618" />
+        </svg>
+      </div>
+      <p class="caption">图 1 · 侧视剖面。亮暗梯度来自罩的遮挡，不是单纯把 PointLight 调暗。</p>
+    </section>
+
+    <section id="now">
+      <h2>2. 当前前端实际在做什么</h2>
+      <p class="lead">代码：<code>Code/Module/Main/scene/CeilingLights.jsx</code>。灯组在 <code>y = HEIGHT - 0.42</code>（约 3.13 m），沿走廊 +Z。</p>
+      <table>
+        <thead><tr><th>零件</th><th>代码</th><th>Three.js 含义</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>灯罩</td>
+            <td><code>coneGeometry(0.16, 0.2)</code> + <code>rotation={[Math.PI, 0, 0]}</code></td>
+            <td>默认锥：尖在 +Y、大口在 −Y（口朝下）。再绕 X 转 180° 后，<strong>大口朝上对着天花</strong>。</td>
+          </tr>
+          <tr>
+            <td>灯泡</td>
+            <td>球在局部 <code>y = -0.06</code></td>
+            <td>在翻转后的锥尖下方，<strong>在罩外面</strong>，不是腔内。</td>
+          </tr>
+          <tr>
+            <td>罩材质</td>
+            <td>不透明 <code>MeshStandardMaterial</code> + <code>emissive</code></td>
+            <td>罩自己发光，不是半透明网膜滤光。</td>
+          </tr>
+          <tr>
+            <td>SpotLight</td>
+            <td>局部 <code>y = -0.1</code>，瞄准地面，<code>angle=0.95</code></td>
+            <td>引擎锥光，<strong>不读灯罩网格</strong>。开口朝哪与光锥无关。</td>
+          </tr>
+          <tr>
+            <td>PointLight</td>
+            <td>局部 <code>y = -0.08</code>，<code>distance=12</code>，无阴影</td>
+            <td>各向同性，天花、上门墙、地板一起照。罩挡不住它。</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="diagram">
+        <svg viewBox="0 0 1040 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="当前错误灯罩">
+          <text x="520" y="28" text-anchor="middle" fill="#9aa3b2" font-size="14">现状：Cone 转了 180° · 口朝上 · 灯泡在罩外</text>
+          <rect x="40" y="48" width="960" height="22" fill="#4a3a22" />
+          <text x="60" y="64" fill="#e07a6a" font-size="12">天花被照亮（错误：出现灯上光圈）</text>
+          <polygon points="455,88 585,88 520,168" fill="none" stroke="#e07a6a" stroke-width="3" />
+          <text x="600" y="100" fill="#e07a6a" font-size="12">大口朝天花 = 漏光口</text>
+          <circle cx="520" cy="188" r="10" fill="#ffd9a8" />
+          <text x="600" y="192" fill="#e07a6a" font-size="12">灯泡在罩下方外侧</text>
+          <path d="M520,188 L360,80" stroke="#e07a6a" stroke-width="1.5" opacity="0.7" />
+          <path d="M520,188 L680,80" stroke="#e07a6a" stroke-width="1.5" opacity="0.7" />
+          <path d="M520,188 L400,300" stroke="#e8a15a" stroke-width="1.5" opacity="0.5" />
+          <path d="M520,188 L640,300" stroke="#e8a15a" stroke-width="1.5" opacity="0.5" />
+          <text x="80" y="250" fill="#9aa3b2" font-size="12">PointLight 四周打光，罩网格不参与遮挡</text>
+          <rect x="40" y="300" width="960" height="12" fill="#5a3a22" />
+        </svg>
+      </div>
+      <p class="caption">图 2 · 浏览器里看到天花一圈暖斑、灯罩像白漏斗朝上，就是这个朝向。</p>
+      <p class="warn">Blender 第一期白模 <code>corridor_phase1.blend</code> 里锥罩同样是口朝上的占位，前端是按它抄的，两边都要改。</p>
+    </section>
+
+    <section id="bugs">
+      <h2>3. 物理交互问题（根因）</h2>
+      <table>
+        <thead><tr><th>#</th><th>问题</th><th>物理上错在哪</th><th>画面后果</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>P1</td>
+            <td><span class="tag gap">朝向反了</span></td>
+            <td>真实灯罩大口是出光口，应朝地板。现在大口朝天花，密封面变成朝下的尖。</td>
+            <td>天花最亮；从下往上看是漏斗内侧，不是封闭顶。</td>
+          </tr>
+          <tr>
+            <td>P2</td>
+            <td><span class="tag gap">灯泡在罩外</span></td>
+            <td>灯丝应在腔体里，光线先碰到罩内壁再出去。球在罩下，等于裸灯泡 + 旁边一个空锥。</td>
+            <td>灯珠直接暴露；罩不定义光的形状。</td>
+          </tr>
+          <tr>
+            <td>P3</td>
+            <td><span class="tag gap">罩不参与光照</span></td>
+            <td>真实半透明网膜会衰减侧向光。WebGL 的 Point/Spot <strong>默认不把透明网格当滤光片</strong>。灯是数学锥/球，网格只是给眼睛看的。</td>
+            <td>墙上半不该亮的地方仍被 PointLight 照到；没有「透过罩慢慢变暗」。</td>
+          </tr>
+          <tr>
+            <td>P4</td>
+            <td><span class="tag gap">罩在发光</span></td>
+            <td><code>emissive</code> 把罩当成光源，等于又加了一盏灯，还朝四面八方（含天花）。</td>
+            <td>罩体过亮；进一步冲掉上下明暗。</td>
+          </tr>
+          <tr>
+            <td>P5</td>
+            <td><span class="tag gap">点光无遮挡</span></td>
+            <td>PointLight 各向同性且当前 <code>castShadow=false</code>。密封顶挡不住向上的能量。</td>
+            <td>上门墙、天花、远处体积都被填亮。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">Three.js 不是 Cycles：没有「光子打到半透明羊皮再透射」。要模拟网膜，必须靠：开口内的窄 Spot（直射）+ 罩网格投射阴影（挡住上天花的光）+ 很弱的透射/自发光（侧向漏光）。不能指望一盏 PointLight 自动被罩滤掉。</p>
+    </section>
+
+    <section id="shadow">
+      <h2>4. 阴影问题</h2>
+      <table>
+        <thead><tr><th>#</th><th>现状</th><th>为何不够</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>S1</td>
+            <td>只有 <code>z ≤ 3.25</code> 的 Spot 开了 <code>castShadow</code>（约前两盏）。</td>
+            <td>后面灯塘没有阴影；凹板、门套、人走过去时更远的灯不投影。</td>
+          </tr>
+          <tr>
+            <td>S2</td>
+            <td>PointLight 全部不投影。</td>
+            <td>向上、向侧的光是「穿墙」的，罩顶密封在阴影上等于不存在。</td>
+          </tr>
+          <tr>
+            <td>S3</td>
+            <td>灯罩 mesh 未作为遮光体设计（还可能 <code>emissive</code> 抵消暗部）。</td>
+            <td>即使开阴影，开口朝上时罩投下的影也在错的方向（挡地板、放天花）。</td>
+          </tr>
+          <tr>
+            <td>S4</td>
+            <td>Shadow map：512、bias -0.012；墙裙/凹板 raycast 已关掉但不影响阴影。</td>
+            <td>半透明网膜的<strong>彩色透射影</strong> shadow map 做不到。最多：不透明罩挡住上天花的光 + Spot 只照开口立体角。</td>
+          </tr>
+          <tr>
+            <td>S5</td>
+            <td>Canvas 开了 <code>shadows</code>，但地板亮斑主要来自 Spot 衰减，不是罩的投影轮廓。</td>
+            <td>灯塘边缘是 penumbra 圆，不是「圆罩开口」的真实形状。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="lead">正确阴影链应是：腔内光源 → 罩顶/侧壁投下阴影到天花（天花黑）→ 开口不遮挡 → 地板/墙裙收到直射 → 侧壁半透明部分只漏很弱的光，不靠第二盏全向点光。</p>
+    </section>
+
+    <section id="fix">
+      <h2>5. 修复方向（2026-09-08 前端已按此改过一轮）</h2>
+      <ul>
+        <li>去掉灯罩的 <code>rotation={[Math.PI,0,0]}</code>，让 Cone 默认大口朝 −Y（地板）。顶部加盖或用封闭壳体，不要开口朝天花。</li>
+        <li>灯泡球移到锥腔内（局部 y 在罩顶与开口之间）。</li>
+        <li>主光：仅开口方向的 Spot（或 IES），角度对准地板 + 墙裙，不要打到天花。</li>
+        <li>删掉或大幅减弱无阴影 PointLight；侧向亮暗交给半透明罩 + 极弱 emissive（强度远小于现在的 0.55 / 2.2）。</li>
+        <li>罩：<code>transparent</code> / 低 <code>transmission</code> 或双面半透明；<code>castShadow</code> 打开，让密封顶挡住向上的光。</li>
+        <li>阴影：至少近处 2～4 盏 Spot 投影；罩必须在 shadow caster 里。</li>
+        <li>资产最终应是 <code>ceiling_pendant.glb</code>（口朝下、顶封闭），前端只实例化，不再用翻转的 <code>coneGeometry</code> 占位。</li>
+      </ul>
+      <p class="note">2026-09-08：朝向、腔内灯泡、朝下 Spot、去掉房间级点光，已在 <code>CeilingLights.jsx</code> 落地。气质改为 scheme-A 深色浅盘罩（不是半透明羊皮）。天花改为暗色微亮哑光，地板保留反光。未决：删罩外侧楞条；正式 GLB。见 <a href="../../../前端/第一期/现网进度.html">现网进度.html</a>。</p>
+    </section>
+
+    <section>
+      <h2>6. 相关文件</h2>
+      <table>
+        <thead><tr><th>文件</th><th>关系</th></tr></thead>
+        <tbody>
+          <tr><td><code>Code/Module/Main/scene/CeilingLights.jsx</code></td><td>现网实现（朝向 / 点光 / 阴影开关）</td></tr>
+          <tr><td><code>Code/Module/Main/pages/ProfilePage.jsx</code></td><td>Canvas <code>shadows</code>、曝光</td></tr>
+          <tr><td><code>System_doc/3D美术/第一期/corridor_phase1.blend</code></td><td>Blender 占位灯同样口朝上</td></tr>
+          <tr><td><code>System_doc/Main_Page/Start/UI设计规范.md</code> 与 <code>UI/第一期/UI设计规范.md</code></td><td>已补：大口朝下、腔内灯泡、顶密封、墙上渐暗</td></tr>
+          <tr><td><code>System_doc/3D美术/第一期/任务计划.html</code></td><td>地板锁定为 <code>wainscot_albedo.jpg</code>（与墙裙同一套）</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>System_doc/Error/第一期/Light_physical/天花吊灯物理交互与阴影.html · 2026-09-08</footer>
+</body>
+</html>

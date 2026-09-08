@@ -1,19 +1,16 @@
-import React, { useMemo, useRef } from 'react'
+import React, { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
+import { useGLTF } from '@react-three/drei'
 import rooms from '@main/data/rooms.json'
 import { getDoorZ } from './cameraStops.js'
-import {
-  INNER_WIDTH,
-  WAINSCOT_HEIGHT,
-  DOOR_W,
-  DOOR_H,
-  DOOR_T
-} from './corridorLayout.js'
+import { INNER_WIDTH, DOOR_W } from './corridorLayout.js'
 import { CAMERA_PHASE, DOOR_OPEN_DURATION, useCorridorStore } from '../store/corridorStore.js'
 import { easeInOutCubic } from './easing.js'
+import { applyNamedMaterials, cloneGltf, doorMaterialFor } from './gltfShared.js'
 
 const OPEN_RAD = 1.72
+const DOOR_URL = '/models/corridor_door.glb?v=2'
 
 function useLabelMap(text) {
   return useMemo(() => {
@@ -44,7 +41,7 @@ function DoorLabel({ text, position }) {
   )
 }
 
-function WoodenDoor({ room, materials }) {
+function WoodenDoor({ room, materials, scene }) {
   const { side, label, id: doorId, stopIndex } = room
   const hingeRef = useRef()
   const progressRef = useRef(0)
@@ -55,13 +52,25 @@ function WoodenDoor({ room, materials }) {
   const currentStop = useCorridorStore((s) => s.stopIndex)
 
   const hingeX = side === 'left' ? -(INNER_WIDTH / 2) + 0.01 : INNER_WIDTH / 2 - 0.01
-  const faceYaw = side === 'left' ? Math.PI / 2 : -Math.PI / 2
-  const knobOut = side === 'left' ? 0.045 : -0.045
-  const centerX = side === 'left' ? DOOR_T / 2 + 0.01 : -(DOOR_T / 2 + 0.01)
-  const openSign = side === 'left' ? 1 : -1
+  const xSign = side === 'left' ? 1 : -1
   const clickable =
     stopIndex === currentStop &&
     (cameraPhase === CAMERA_PHASE.LOOK_FORWARD || cameraPhase === CAMERA_PHASE.FACING_DOOR)
+
+  const clone = useMemo(() => cloneGltf(scene), [scene])
+  const leaf = useMemo(() => clone.getObjectByName('DoorLeaf'), [clone])
+  const frame = useMemo(() => clone.getObjectByName('DoorFrame'), [clone])
+  const labelPos = useMemo(() => {
+    const anchor = clone.getObjectByName('LabelAnchor')
+    return anchor ? [anchor.position.x, anchor.position.y, anchor.position.z] : [0.09, 1.81, -0.48]
+  }, [clone])
+
+  useLayoutEffect(() => {
+    if (leaf) applyNamedMaterials(leaf, (name) => doorMaterialFor(name, materials))
+    if (frame) {
+      applyNamedMaterials(frame, (name) => doorMaterialFor(name, materials), { raycast: false })
+    }
+  }, [leaf, frame, materials])
 
   useFrame((_, delta) => {
     const opening = cameraPhase === CAMERA_PHASE.DOOR_OPENING && facingDoorId === doorId
@@ -71,7 +80,8 @@ function WoodenDoor({ room, materials }) {
       progressRef.current = 0
     }
     if (hingeRef.current) {
-      hingeRef.current.rotation.y = openSign * OPEN_RAD * easeInOutCubic(progressRef.current)
+      // GLB hinge at +Z, leaf extends −Z; negative yaw opens into the corridor.
+      hingeRef.current.rotation.y = -OPEN_RAD * easeInOutCubic(progressRef.current)
     }
   })
 
@@ -81,10 +91,10 @@ function WoodenDoor({ room, materials }) {
   }
 
   return (
-    <group ref={hingeRef} position={[hingeX, 0, -DOOR_W / 2]}>
+    <group position={[hingeX, 0, DOOR_W / 2]} scale={[xSign, 1, 1]}>
+      {frame ? <primitive object={frame} /> : null}
       <group
-        position={[centerX, DOOR_H / 2, DOOR_W / 2]}
-        rotation={[0, faceYaw, 0]}
+        ref={hingeRef}
         onClick={onDoorClick}
         onPointerOver={() => {
           gl.domElement.style.cursor = clickable ? 'pointer' : 'auto'
@@ -93,43 +103,9 @@ function WoodenDoor({ room, materials }) {
           gl.domElement.style.cursor = 'auto'
         }}
       >
-        <mesh
-          castShadow
-          receiveShadow
-          material={materials.door}
-          onClick={onDoorClick}
-          onPointerOver={() => {
-            gl.domElement.style.cursor = clickable ? 'pointer' : 'auto'
-          }}
-          onPointerOut={() => {
-            gl.domElement.style.cursor = 'auto'
-          }}
-        >
-          <boxGeometry args={[DOOR_W, DOOR_H, DOOR_T]} />
-        </mesh>
-        <mesh position={[0, 0.38, DOOR_T / 2 + 0.008]} material={materials.doorPanel}>
-          <boxGeometry args={[0.62, 0.72, 0.012]} />
-        </mesh>
-        <mesh position={[0, -0.42, DOOR_T / 2 + 0.008]} material={materials.doorPanel}>
-          <boxGeometry args={[0.62, 0.72, 0.012]} />
-        </mesh>
-        <DoorLabel text={label} position={[0, 0.72, DOOR_T / 2 + 0.016]} />
-        <mesh position={[DOOR_W * 0.28, -0.08, DOOR_T / 2 + knobOut]} material={materials.brass} castShadow>
-          <sphereGeometry args={[0.04, 16, 16]} />
-        </mesh>
+        {leaf ? <primitive object={leaf} /> : null}
+        <DoorLabel text={label} position={labelPos} />
       </group>
-    </group>
-  )
-}
-
-function DoorFrame({ side, materials }) {
-  const x = side === 'left' ? -(INNER_WIDTH / 2) + 0.04 : INNER_WIDTH / 2 - 0.04
-  const yaw = side === 'left' ? Math.PI / 2 : -Math.PI / 2
-  return (
-    <group position={[x, WAINSCOT_HEIGHT * 0.72, 0]} rotation={[0, yaw, 0]}>
-      <mesh position={[0, DOOR_H / 2 + 0.04, 0]} material={materials.wainscot}>
-        <boxGeometry args={[DOOR_W + 0.16, 0.08, 0.1]} />
-      </mesh>
     </group>
   )
 }
@@ -137,15 +113,15 @@ function DoorFrame({ side, materials }) {
 export default function DoorPair({ stopIndex, materials }) {
   const z = getDoorZ(stopIndex)
   const pair = rooms.filter((room) => room.stopIndex === stopIndex)
+  const { scene } = useGLTF(DOOR_URL)
 
   return (
     <group position={[0, 0, z]}>
       {pair.map((room) => (
-        <group key={room.id}>
-          <DoorFrame side={room.side} materials={materials} />
-          <WoodenDoor room={room} materials={materials} />
-        </group>
+        <WoodenDoor key={room.id} room={room} materials={materials} scene={scene} />
       ))}
     </group>
   )
 }
+
+useGLTF.preload(DOOR_URL)

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TA · 第二期 — 门内房间资产规范</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p { color: var(--muted); max-width: 76ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TA · 第二期 <span>/ 门内房间</span></h1>
+    <p>第一期走廊规范沿用（米、Y-up、2K、glb）。本期只处理房间 Canvas 里的资产。不要把房间原点接到走廊 <code>getDoorZ</code> 上。</p>
+    <nav>
+      <a href="../任务计划.html">总计划</a>
+      <a href="../第一期/任务计划.html">第一期</a>
+      <a href="../../3D美术/第二期/任务计划.html">3D 美术第二期</a>
+      <a href="架构约束与数据模型.md">房间架构</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>房间坐标（另一套原点）</h2>
+      <table>
+        <thead><tr><th>项</th><th>约定</th></tr></thead>
+        <tbody>
+          <tr><td>房间尺寸</td><td>约 6.6 × 8.0 m，原点在地面中心，<code>z ∈ [−4, +4]</code></td></tr>
+          <tr><td>画面左 / 画</td><td>世界 +X</td></tr>
+          <tr><td>画面右 / 黑板</td><td>世界 −X</td></tr>
+          <tr><td>入场门</td><td>−Z 墙，<code>DOOR_X = 1.58</code>；铰链在 +X 侧，向房间内 <code>rotateY</code></td></tr>
+          <tr><td>与走廊</td><td>只传 <code>doorId</code> 字符串，不传 x/y/z</td></tr>
+        </tbody>
+      </table>
+      <p class="note">模块之间不共用世界坐标。无缝合并场景是以后的事，本期禁止为此改轴或做走廊延伸网格。</p>
+    </section>
+
+    <section>
+      <h2>命名表（第二期）</h2>
+      <table>
+        <thead><tr><th>资产</th><th>文件</th><th>轴心</th></tr></thead>
+        <tbody>
+          <tr><td>房间地板/墙</td><td><code>room_floor_*.jpg</code> <code>room_wall_*.jpg</code> → <code>public/textures/door/</code></td><td>平铺，无轴心问题</td></tr>
+          <tr><td>画框</td><td><code>picture_frame.glb</code></td><td>框中心；画芯不要合进同一材质</td></tr>
+          <tr><td>画灯</td><td><code>picture_lamp.glb</code></td><td>安装点在灯座贴墙处</td></tr>
+          <tr><td>桌</td><td><code>table.glb</code></td><td>桌腿着地点 / 底部中心，Y=0 为地面</td></tr>
+          <tr><td>凳</td><td><code>stool.glb</code></td><td>同上</td></tr>
+          <tr><td>桌灯</td><td><code>table_lamp.glb</code></td><td>原点在桌面；<code>PullCord</code> / <code>PullBead</code> 供点击</td></tr>
+          <tr><td>天花格子</td><td>GLB 或法线贴图</td><td>若 GLB，原点在格子中心贴天花</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>性能与分离</h2>
+      <ul>
+        <li>桌+凳+框+灯合计建议 &lt; 40k 三角；贴图仍 2K。</li>
+        <li>画芯、黑板面用独立空白材质，禁止把图案烘焙进去。</li>
+        <li>物体自定义属性可带 <code>table</code> / <code>painting</code> / <code>blackboard</code> / <code>table-lamp</code>。画、黑板、桌子本期不绑编辑器；台灯拉线可点。</li>
+        <li>灯闪 10 秒是前端强度动画，模型只需 emissive 槽位，不要在 GLB 里做闪灯动画轨。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>逐步任务</h2>
+      <table>
+        <thead><tr><th>#</th><th>任务</th></tr></thead>
+        <tbody>
+          <tr><td>2.1</td><td>把房间原点、道具轴心发给 3D 美术，避免桌腿陷地、框朝反。</td></tr>
+          <tr><td>2.2</td><td>验收 GLB：Y-up、米制、画芯分离、无走廊网格混入。</td></tr>
+          <tr><td>2.3</td><td>更新 <code>licenses.txt</code> 房间资源来源。</td></tr>
+          <tr><td>2.4</td><td>通知前端挂到 <code>Module/door</code>；不改进房间状态机，不加物理。</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>System_doc/TA/第二期/任务计划.html</footer>
+</body>
+</html>

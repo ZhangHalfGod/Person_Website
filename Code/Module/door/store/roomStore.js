@@ -9,8 +9,10 @@ export const ROOM_PHASE = {
 
 export const useRoomStore = create((set) => ({
   phase: ROOM_PHASE.ENTER_DARK,
+  tableLampOn: true,
   setPhase: (phase) => set({ phase }),
-  resetIntro: () => set({ phase: ROOM_PHASE.ENTER_DARK })
+  toggleTableLamp: () => set((s) => ({ tableLampOn: !s.tableLampOn })),
+  resetIntro: () => set({ phase: ROOM_PHASE.ENTER_DARK, tableLampOn: true })
 }))
 
 if (import.meta.env.DEV) {

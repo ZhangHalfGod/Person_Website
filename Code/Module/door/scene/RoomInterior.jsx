@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { useLayoutEffect, useMemo } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
 import {
   ROOM_W,
   ROOM_D,
@@ -12,6 +14,8 @@ import {
   DOOR_X
 } from './roomLayout.js'
 
+const COFFER_URL = '/models/ceiling_coffers.glb'
+
 function WallPanel({ position, size, material, receiveShadow = true }) {
   return (
     <mesh position={position} receiveShadow={receiveShadow} material={material}>
@@ -21,24 +25,21 @@ function WallPanel({ position, size, material, receiveShadow = true }) {
 }
 
 function CofferedCeiling({ materials }) {
-  const beams = []
-  const xs = [-2.2, 0, 2.2]
-  const zs = [-2.6, -0.8, 1.0, 2.8]
-  xs.forEach((x) => {
-    beams.push(
-      <mesh key={`x-${x}`} position={[x, ROOM_H - 0.06, 0]} material={materials.beam} castShadow>
-        <boxGeometry args={[0.1, 0.12, ROOM_D - 0.08]} />
-      </mesh>
+  const { scene } = useGLTF(COFFER_URL)
+  const clone = useMemo(() => cloneGltf(scene), [scene])
+  const root = useMemo(() => clone.getObjectByName('CofferRoot') || clone, [clone])
+
+  useLayoutEffect(() => {
+    applyNamedMaterials(root, (name) =>
+      /Panel/i.test(name) ? materials.ceiling : materials.beam
     )
-  })
-  zs.forEach((z) => {
-    beams.push(
-      <mesh key={`z-${z}`} position={[0, ROOM_H - 0.05, z]} material={materials.beam}>
-        <boxGeometry args={[ROOM_W - 0.12, 0.1, 0.1]} />
-      </mesh>
-    )
-  })
-  return <group>{beams}</group>
+  }, [root, materials])
+
+  return (
+    <group position={[0, ROOM_H, 0]}>
+      <primitive object={root} />
+    </group>
+  )
 }
 
 function DoorWall({ materials }) {
@@ -142,3 +143,5 @@ export default function RoomInterior({ materials }) {
     </group>
   )
 }
+
+useGLTF.preload(COFFER_URL)

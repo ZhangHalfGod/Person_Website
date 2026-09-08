@@ -1,46 +1,44 @@
-import React from 'react'
+import React, { useLayoutEffect, useMemo } from 'react'
+import { useGLTF } from '@react-three/drei'
+import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
 import { HALF_W, PAINTING } from './roomLayout.js'
 
-function CornerRosette({ position, materials }) {
-  return (
-    <mesh position={position} material={materials.gold}>
-      <sphereGeometry args={[0.035, 10, 10]} />
-    </mesh>
-  )
+const FRAME_URL = '/models/picture_frame.glb'
+const LAMP_URL = '/models/picture_lamp.glb'
+
+function frameMat(name, materials) {
+  if (/Inner/i.test(name)) return materials.frameWood
+  if (/Outer|Corner/i.test(name)) return materials.goldDark
+  return materials.gold
 }
 
 export default function Painting({ materials }) {
   const { z, y, w, h } = PAINTING
   const x = HALF_W - 0.055
+  const { scene: frameScene } = useGLTF(FRAME_URL)
+  const { scene: lampScene } = useGLTF(LAMP_URL)
+  const frame = useMemo(() => cloneGltf(frameScene), [frameScene])
+  const lamp = useMemo(() => cloneGltf(lampScene), [lampScene])
+  const frameRoot = useMemo(() => frame.getObjectByName('FrameRoot') || frame, [frame])
+  const lampRoot = useMemo(() => lamp.getObjectByName('LampRoot') || lamp, [lamp])
+
+  useLayoutEffect(() => {
+    applyNamedMaterials(frameRoot, (name) => frameMat(name, materials))
+    applyNamedMaterials(lampRoot, () => materials.brass)
+  }, [frameRoot, lampRoot, materials])
 
   return (
-    <group position={[x, y, z]} rotation={[0, -Math.PI / 2, 0]} userData={{ id: 'painting' }}>
-      <mesh material={materials.goldDark} castShadow>
-        <boxGeometry args={[w + 0.16, h + 0.16, 0.05]} />
+    <group position={[x, y, z]} rotation={[0, Math.PI / 2, 0]} userData={{ id: 'painting' }}>
+      <primitive object={frameRoot} />
+      <mesh position={[0, 0, -0.055]} rotation={[0, Math.PI, 0]} material={materials.canvasWhite}>
+        <planeGeometry args={[w, h]} />
       </mesh>
-      <mesh position={[0, 0, 0.018]} material={materials.gold}>
-        <boxGeometry args={[w + 0.1, h + 0.1, 0.03]} />
-      </mesh>
-      <mesh position={[0, 0, 0.032]} material={materials.frameWood}>
-        <boxGeometry args={[w + 0.04, h + 0.04, 0.02]} />
-      </mesh>
-      <mesh position={[0, 0, 0.042]} material={materials.gold}>
-        <boxGeometry args={[w + 0.02, h + 0.02, 0.012]} />
-      </mesh>
-      <mesh position={[0, 0, 0.05]} material={materials.canvasWhite}>
-        <boxGeometry args={[w, h, 0.01]} />
-      </mesh>
-      <CornerRosette position={[-(w / 2 + 0.04), h / 2 + 0.04, 0.04]} materials={materials} />
-      <CornerRosette position={[w / 2 + 0.04, h / 2 + 0.04, 0.04]} materials={materials} />
-      <CornerRosette position={[-(w / 2 + 0.04), -(h / 2 + 0.04), 0.04]} materials={materials} />
-      <CornerRosette position={[w / 2 + 0.04, -(h / 2 + 0.04), 0.04]} materials={materials} />
-
-      <mesh position={[0, h / 2 + 0.14, 0.08]} material={materials.brass}>
-        <boxGeometry args={[w * 0.55, 0.025, 0.04]} />
-      </mesh>
-      <mesh position={[0, h / 2 + 0.1, 0.11]} material={materials.brass}>
-        <boxGeometry args={[w * 0.42, 0.02, 0.06]} />
-      </mesh>
+      <group position={[0, h / 2 + 0.14, 0.02]}>
+        <primitive object={lampRoot} />
+      </group>
     </group>
   )
 }
+
+useGLTF.preload(FRAME_URL)
+useGLTF.preload(LAMP_URL)

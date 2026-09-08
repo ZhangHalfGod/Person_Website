@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile 走廊 · 三方案对照</title>
+  <style>
+    :root {
+      --bg: #07080b;
+      --panel: #10141b;
+      --line: rgba(255,255,255,.1);
+      --text: #e8edf4;
+      --muted: rgba(232,237,244,.62);
+      --warm: #e8a15a;
+      --warm-dim: #c4843d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; line-height: 1.55; }
+    body { max-width: 1120px; margin: 0 auto; padding: 32px 20px 80px; }
+    header { margin-bottom: 36px; }
+    .kicker { color: var(--warm); letter-spacing: .18em; font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+    h1 { font-size: 32px; font-weight: 650; }
+    h1 span { color: var(--warm); }
+    .lead { color: var(--muted); margin-top: 10px; max-width: 720px; }
+    h2 { font-size: 20px; margin: 36px 0 14px; }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    p, li { color: var(--muted); }
+    a { color: var(--warm); }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .card img { width: 100%; height: 180px; object-fit: cover; display: block; background: #000; }
+    .card .body { padding: 14px 16px 18px; }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: .08em;
+      color: var(--warm);
+      border: 1px solid rgba(232,161,90,.4);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background: #151b24; color: var(--text); }
+    .lock {
+      background: #1a140c;
+      border: 1px solid rgba(232,161,90,.45);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 28px;
+    }
+    .lock strong { color: var(--warm); }
+    .check { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+    .check ol { padding-left: 20px; }
+    .check li { margin: 8px 0; color: var(--text); }
+    .check li span { color: var(--muted); }
+    .hint { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    .full { margin-top: 10px; width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; }
+    section { margin-top: 8px; }
+    @media (max-width: 900px) {
+      .grid-3 { grid-template-columns: 1fr; }
+      .card img { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="kicker">Person Website · Main Page</div>
+    <h1>页面名 <span>Profile</span> · 走廊三方案</h1>
+    <p class="lead">
+      进入页面就是一条暗黑走廊：近大远小、灭点在正前方。以下为历史三方案对照。
+      <strong style="color:#e8a15a;">已锁定</strong>见下方黄框。
+    </p>
+  </header>
+
+  <div class="lock">
+    <strong>已锁定（2026-09-07）</strong>
+    <p style="margin-top:8px;">
+      方案 B 真 3D（相机前进/转身、门绕铰链打开）+ 方案 A 天花中线暖灯与中轴文字提示（不要圆圈）。
+      英文名 Profile。第一期无后端、无物理。4 对门。点门进入房间页（开门 + 灯闪约 10 秒 + 桌凳/左画/右黑板）。
+    </p>
+    <p class="hint">执行文档：<a href="Start/README.md">Main_Page/Start</a> · 房间：<a href="../door_Page/README.md">door_Page</a> · 锁定表：<a href="已选定方案.md">已选定方案.md</a></p>
+  </div>
+
+  <section>
+    <h2>1. 三张初始页展示图</h2>
+    <div class="grid-3">
+      <article class="card">
+        <img src="scheme-a-css3d-profile.png" alt="方案 A CSS 3D 走廊初始页" />
+        <div class="body">
+          <div class="tag">方案 A</div>
+          <h3>CSS 3D 走廊</h3>
+          <p>几何平面透视，Web 感强。与 MechAssist 栈完全同源，无 WebGL。</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="scheme-b-threejs-profile.png" alt="方案 B Three.js 走廊初始页" />
+        <div class="body">
+          <div class="tag">方案 B</div>
+          <h3>Three.js 真 3D</h3>
+          <p>点光源真实照到门和墙半截。视觉最接近文字需求。</p>
+        </div>
+      </article>
+      <article class="card">
+        <img src="scheme-c-25d-profile.png" alt="方案 C 分层 2.5D 初始页" />
+        <div class="body">
+          <div class="tag">方案 C</div>
+          <h3>分层 2.5D</h3>
+          <p>概念画分层缩放。出氛围最快，走路感最弱。</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 技术栈对照（请你确认）</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>层</th>
+          <th>方案 A · CSS 3D</th>
+          <th>方案 B · Three.js</th>
+          <th>方案 C · 2.5D</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>前端</td>
+          <td>Vite 5 + React 18 + React Router 6</td>
+          <td>同上 + React Three Fiber + drei + Three.js</td>
+          <td>Vite 5 + React 18（可先纯 HTML 再包）</td>
+        </tr>
+        <tr>
+          <td>UI</td>
+          <td>Tailwind 3 + lucide-react；走廊用 CSS perspective</td>
+          <td>Tailwind 做 HUD；场景内 Mesh + PointLight</td>
+          <td>Tailwind + 分层图 + HTML 热区 / 门牌</td>
+        </tr>
+        <tr>
+          <td>动效</td>
+          <td>CSS transition / translateZ 一档</td>
+          <td>相机沿走廊 Z 轴 lerp</td>
+          <td>GSAP 拉近、切到下一层门对</td>
+        </tr>
+        <tr>
+          <td>状态</td>
+          <td>zustand（stopIndex + rooms）</td>
+          <td>zustand（同上，驱动相机目标）</td>
+          <td>React state 或 zustand</td>
+        </tr>
+        <tr>
+          <td>后端</td>
+          <td>Express 4 + better-sqlite3 + JWT（对齐 extern-api）</td>
+          <td>同方案 A，数据不绑 3D 引擎</td>
+          <td>第一期静态 JSON；第二期再 Express</td>
+        </tr>
+        <tr>
+          <td>接口形状</td>
+          <td colspan="3">GET /api/rooms 、 GET /api/rooms/:id 。字段含 id、side、stopIndex、label（门牌可中英数）。</td>
+        </tr>
+        <tr>
+          <td>部署</td>
+          <td>Vite dist + Express，concurrently 本地联调</td>
+          <td>同左；贴图走 public/，注意 gzip</td>
+          <td>可纯静态；有 API 后再加 Express</td>
+        </tr>
+        <tr>
+          <td>第一期工作量</td>
+          <td>中</td>
+          <td>高</td>
+          <td>低</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="hint">参考仓库：MechAssist-Fusion / extern-api（Vite React Tailwind Express SQLite）与 mcp-gaode（深色 UI #0B0F14）。</p>
+  </section>
+
+  <section>
+    <h2>3. 共用交互（三方案相同）</h2>
+    <p>stopIndex = 0 时左右为门 0 / 1；点击走廊中轴后 stopIndex = 1，左右为门 2 / 3。label 只是展示文案。</p>
+    <pre style="background:#10141b;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px;color:#d7deea;overflow:auto;">leftDoor  = rooms[stopIndex * 2]
+rightDoor = rooms[stopIndex * 2 + 1]
+click corridor center → stopIndex += 1 → 镜头到下一对门正前
+click a door         → 后期进入该房间（本期可先高亮）
+back                 → stopIndex -= 1（到 0 停止）</pre>
+  </section>
+
+  <section>
+    <h2>4. 放大看初始页</h2>
+    <h3>方案 A</h3>
+    <img class="full" src="scheme-a-css3d-profile.png" alt="方案 A 全图" />
+    <h3 style="margin-top:22px;">方案 B</h3>
+    <img class="full" src="scheme-b-threejs-profile.png" alt="方案 B 全图" />
+    <h3 style="margin-top:22px;">方案 C</h3>
+    <img class="full" src="scheme-c-25d-profile.png" alt="方案 C 全图" />
+  </section>
+
+  <section>
+    <h2>5. 需要你确定</h2>
+    <div class="check">
+      <ol>
+        <li><strong>方案：A / B / C。</strong> <span>灯光优先选 B；尽快可点且与 MechAssist 完全同源选 A；先出氛围选 C。</span></li>
+        <li><strong>英文页名：</strong> <span>默认 Profile，或 Personal Profile / Bio。</span></li>
+        <li><strong>第一期后端：</strong> <span>静态 JSON，还是一开始就 Express + SQLite。</span></li>
+        <li><strong>点门：</strong> <span>第一期只高亮，还是进入 door_Page。</span></li>
+        <li><strong>门对数：</strong> <span>建议先做 4 对（0～7），够演示前进。</span></li>
+        <li><strong>后退：</strong> <span>建议做（键盘 / 点击近处地面）。</span></li>
+      </ol>
+      <p class="hint">选定后把实现写进仓库的 Code/ 目录。本页只是方案，还没有可点的走廊代码。</p>
+    </div>
+  </section>
+
+  <p class="hint" style="margin-top:28px;">
+    Markdown 细稿：
+    <a href="方案A_CSS3D走廊.md">方案 A</a> ·
+    <a href="方案B_ThreeJS真3D.md">方案 B</a> ·
+    <a href="方案C_分层2.5D.md">方案 C</a> ·
+    <a href="三方案对比.md">对照</a> ·
+    <a href="视觉与交互需求.md">需求</a>
+  </p>
+</body>
+</html>

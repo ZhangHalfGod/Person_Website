@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D 美术 · 第一期 — 走廊 / 灯 / 门</title>
+  <style>
+    :root {
+      --bg: #0b0c10; --panel: #14161c; --line: #2a2e38; --text: #e8edf4;
+      --muted: #9aa3b2; --warm: #e8a15a; --green: #6bcb8b; --blue: #7aa2ff;
+      --red: #e07a6a; --cyan: #6dcee0;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.6 "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    a { color: var(--warm); }
+    header, footer { max-width: 1120px; margin: 0 auto; padding: 2.2rem 1.5rem 1.2rem; }
+    header { border-bottom: 1px solid var(--line); }
+    header p, .lead { color: var(--muted); max-width: 76ch; }
+    h1 { font-size: 1.65rem; font-weight: 650; margin: 0 0 0.4rem; }
+    h1 span { color: var(--warm); font-weight: 500; }
+    nav { display: flex; flex-wrap: wrap; gap: 0.6rem 1.1rem; margin-top: 1rem; font-size: 0.92rem; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem; }
+    section { margin: 2.2rem 0 2.8rem; }
+    h2 { font-size: 1.25rem; margin: 0 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--line); }
+    h3 { font-size: 1.02rem; color: var(--warm); margin: 1.4rem 0 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: var(--panel); }
+    th, td { border: 1px solid var(--line); padding: 0.55rem 0.7rem; vertical-align: top; text-align: left; }
+    th { background: #1b1e26; color: var(--muted); font-weight: 600; }
+    .tag { display: inline-block; font-size: 0.75rem; padding: 0.08rem 0.4rem; border-radius: 3px; margin-right: 0.25rem; background: #2a2118; color: var(--warm); }
+    code { font-family: ui-monospace, Consolas, monospace; font-size: 0.86em; color: var(--cyan); }
+    .note { background: var(--panel); border-left: 3px solid var(--warm); padding: 0.7rem 0.9rem; color: var(--muted); font-size: 0.92rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.35rem 0; }
+    footer { color: var(--muted); font-size: 0.85rem; padding-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3D 美术 · 第一期 <span>/ 走廊 · 灯光 · 门材质</span></h1>
+    <p>目标：让走廊在暖灯下接近 <a href="../../Main_Page/Start/profile-corridor-v1.png">profile-corridor-v1.png</a>。门内房间不在本期。Blender 可通过项目 MCP 直接操作。白模对着 PNG 搭，不要只靠文字。</p>
+    <nav>
+      <a href="../材质交付操作.md">材质交付操作</a>
+      <a href="../任务计划.html">总计划</a>
+      <a href="../第二期/任务计划.html">第二期（门内）</a>
+      <a href="../../TA/第一期/任务计划.html">TA 第一期</a>
+      <a href="视觉与交互需求.md">视觉需求</a>
+      <a href="UI设计规范.md">走廊 UI 规范</a>
+      <a href="../../前端/第一期/现网进度.html">现网进度</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>范围</h2>
+      <table>
+        <thead><tr><th>做</th><th>不做</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>走廊地板、墙裙凹板、完整门套、上门墙气质、8 扇门共用一套门材质、黄铜五金、天花中线吊灯。</td>
+            <td>房间桌椅金框、画芯图案、黑板字、物理碰撞、任何后端。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">气质：夜里的旅馆通道。灯色约 <code>#ffb366</code> / 2700K，挂在天花<strong>中线</strong>，不要装在门楣两侧。</p>
+    </section>
+
+    <section>
+      <h2>对照 demo 图必须做的三条</h2>
+      <p class="lead">这三条在图上很明显，不再写成「可选」。形体对不上 PNG，贴图再细也无效。</p>
+      <table>
+        <thead><tr><th>条</th><th>Demo 图</th><th>本期怎么做</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1. 墙裙凹板</td>
+            <td>下半墙是一格格凹陷的矩形木板，有框、有进深，不是平贴一张木纹。</td>
+            <td><strong>必做。</strong> 用模型或法线做出矩形凹板（门与门之间的节奏对齐参考图）。不要只刷平铺贴图。</td>
+          </tr>
+          <tr>
+            <td>2. 完整门套</td>
+            <td>近处门有框、楣、套，看起来是嵌进墙里的门，不是一块薄板贴在墙上。</td>
+            <td><strong>必做。</strong> 门扇 + 左右竖框 + 上门楣（可与墙裙一体）。现有前端只有一条细楣，本期资产要补全门套。</td>
+          </tr>
+          <tr>
+            <td>3. 地板纵向木纹</td>
+            <td>木板沿走廊向灭点铺，灯斑顺着条纹拉长。</td>
+            <td><strong>必做。</strong> 木纹 / UV 主方向沿 +Z，不要横铺。roughness 中低，能出软反光灯塘。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>对齐代码里的尺寸（米）</h2>
+      <table>
+        <thead><tr><th>项</th><th>值</th></tr></thead>
+        <tbody>
+          <tr><td>走廊内宽 / 高</td><td><code>INNER_WIDTH = 4.5</code>　<code>HEIGHT = 3.55</code></td></tr>
+          <tr><td>墙裙高</td><td><code>WAINSCOT_HEIGHT = 1.58</code></td></tr>
+          <tr><td>门</td><td><code>0.96 × 2.18 × 0.07</code></td></tr>
+          <tr><td>灯</td><td><code>x = 0</code>，<code>y ≈ HEIGHT - 0.42</code>，沿 +Z 一排</td></tr>
+          <tr><td>单位 / 轴</td><td>1 单位 = 1 米；Y 向上；走廊朝 +Z</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>逐步任务</h2>
+      <table>
+        <thead><tr><th>#</th><th>任务</th><th>输出</th></tr></thead>
+        <tbody>
+          <tr><td>1.1</td><td>在 Blender 按上表搭走廊白模，<strong>对着 PNG</strong>：先做出墙裙凹板和门套形体（可与前端尺寸对齐，不必一次做到最终面数）。</td><td>工作 <code>.blend</code></td></tr>
+          <tr><td>1.2</td><td>地板：深色实木、可平铺、roughness 中低（要有灯斑）。木纹沿走廊 <code>+Z</code> 纵向铺，不要横铺。2K 起。</td><td>见下方「前端当前锁定」</td></tr>
+          <tr><td>1.3</td><td>墙裙：略亮于地板的木头；<strong>必做</strong>矩形凹陷木板（模型或法线），对齐参考图的分格。</td><td>源可 PNG；网页 <code>wainscot_*.jpg</code> 及凹板模型/法线</td></tr>
+          <tr><td>1.4</td><td>门：深色实木扇 + <strong>完整门套</strong>（左右框、上门楣），有厚度与分缝。门牌不画进贴图。</td><td>瘦 <code>corridor_door.glb</code>（含门套，不内嵌贴图）</td></tr>
+          <tr><td>1.5</td><td>黄铜：把手 + 门牌框。metalness 高、roughness 偏低。</td><td><code>brass_*.jpg</code>（512，网页用；不必 2K PNG）</td></tr>
+          <tr><td>1.6</td><td>吊灯 GLB（可后做）：口朝下、顶密封、腔内灯泡位、天花灯座 + 可见吊线。对齐 scheme-A 浅盘罩，<strong>不要</strong>外侧辐条楞。前端占位已在 <code>CeilingLights.jsx</code>，不必先开 Blender。</td><td><code>ceiling_pendant.glb</code></td></tr>
+          <tr><td>1.7</td><td>交 TA 过单位、铰链、体积；再交前端挂到 <code>MeshStandardMaterial</code>。</td><td>见落盘路径</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>前端当前锁定的地板材质</h2>
+      <p class="lead">2026-09-08 试看后保留：地板与墙裙用同一套 <code>wainscot_*</code>，不再用程序化木纹，也不用 <code>floor_*.jpg</code>。</p>
+      <table>
+        <thead><tr><th>用途</th><th>文件</th><th>来源</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>地板 + 墙裙 + 门</td>
+            <td><code>Code/public/textures/Main/wainscot_albedo.jpg</code><br /><code>wainscot_roughness.jpg</code>　<code>wainscot_normal.jpg</code></td>
+            <td>Poly Haven <code>wood_cabinet_worn_long</code>（CC0）。地板 UV repeat <code>[2.2, 14]</code>。</td>
+          </tr>
+          <tr>
+            <td>未挂到网页</td>
+            <td><code>floor_albedo.jpg</code> 等同套三张</td>
+            <td>Poly Haven <code>dark_wooden_planks</code>，仅留在目录和 Blender 文件里。</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">代码：<code>useCorridorMaterials.js</code> 里地板 <code>cloneRepeat(maps.woodMap, …)</code>，<code>woodMap</code> 即 <code>wainscot_albedo.jpg</code>。</p>
+    </section>
+
+    <section>
+      <h2>落盘与格式</h2>
+      <p class="lead">不要把制作 PNG 或带图 GLB 直接给网页。操作见 <a href="../材质交付操作.md">材质交付操作.md</a>。</p>
+      <ul>
+        <li>源：PNG 或预览用带图 GLB，可留在 <code>.blend</code> / 工作目录。</li>
+        <li>网页贴图 → <code>Code/public/textures/Main/</code>，<strong>JPG</strong>（平铺 2K，五金 512）。</li>
+        <li>网页模型 → <code>Code/public/models/</code>，瘦 <code>.glb</code>（几何 + UV，不内嵌贴图）。</li>
+        <li>前端挂 <code>MeshStandardMaterial</code>，8 扇门 / 12 盏灯共用同一套 JPG。</li>
+        <li>许可证抄进 <code>Code/public/licenses.txt</code>。</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>验收</h2>
+      <ul>
+        <li>停驻点 0 对照 PNG：墙裙能看出矩形凹板，门有完整门套，地板木纹朝灭点。</li>
+        <li>近处地板和门受光并有轻微反光；墙上半与天花暗色微亮、哑光；灯在天花中线，吊线能看清。</li>
+        <li>8 扇门共用一套材质，换 <code>label</code> 不需重烤贴图。</li>
+        <li>不出现房间家具。不引入物理/后端资源。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>System_doc/3D美术/第一期/任务计划.html</footer>
+</body>
+</html>
