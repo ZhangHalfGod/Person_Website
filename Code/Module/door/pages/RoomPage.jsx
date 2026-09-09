@@ -3,6 +3,9 @@ import { Canvas } from '@react-three/fiber'
 import { Navigate, useParams } from 'react-router-dom'
 import rooms from '@main/data/rooms.json'
 import RoomHud from '../overlay/RoomHud.jsx'
+import SiteMenu from '@app/overlay/SiteMenu.jsx'
+import { REQUIRE_CONSOLE } from '@app/config/site.js'
+import { useSessionStore } from '@app/store/sessionStore.js'
 import RoomScene from '../scene/RoomScene.jsx'
 import { CAM_LOOK, CAM_POS } from '../scene/roomLayout.js'
 import { FLICKER_DURATION } from '../scene/introTimeline.js'
@@ -29,9 +32,18 @@ function ResetIntro({ doorId }) {
 export default function RoomPage() {
   const { doorId } = useParams()
   const room = rooms.find((item) => item.id === doorId)
+  const status = useSessionStore((s) => s.status)
 
   if (!room) {
     return <Navigate to="/" replace />
+  }
+
+  if (REQUIRE_CONSOLE && status === 'guest') {
+    return <Navigate to="/" replace />
+  }
+
+  if (REQUIRE_CONSOLE && status === 'checking') {
+    return <div className="min-h-screen w-full bg-corridor-bg" />
   }
 
   return (
@@ -56,6 +68,7 @@ export default function RoomPage() {
         </Suspense>
       </Canvas>
       <RoomHud label={room.label} />
+      <SiteMenu />
     </div>
   )
 }

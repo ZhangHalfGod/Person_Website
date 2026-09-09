@@ -2,6 +2,8 @@ import React, { Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import ProfileHud from '../overlay/ProfileHud.jsx'
+import SiteMenu from '@app/overlay/SiteMenu.jsx'
+import { useSessionStore } from '@app/store/sessionStore.js'
 import CorridorScene from '../scene/CorridorScene.jsx'
 import {
   CAMERA_PHASE,
@@ -14,8 +16,10 @@ import {
 function WalkKeys() {
   const onMidClick = useCorridorStore((s) => s.onMidClick)
   const walkBack = useCorridorStore((s) => s.walkBack)
+  const unlocked = useSessionStore((s) => s.status === 'unlocked')
 
   useEffect(() => {
+    if (!unlocked) return undefined
     const onKeyDown = (event) => {
       if (event.repeat) return
       if (event.key === 'ArrowUp' || event.key === 'w' || event.key === 'W') {
@@ -34,7 +38,7 @@ function WalkKeys() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onMidClick, walkBack])
+  }, [onMidClick, walkBack, unlocked])
 
   return null
 }
@@ -43,14 +47,16 @@ function OpenDoorRouter() {
   const navigate = useNavigate()
   const phase = useCorridorStore((s) => s.cameraPhase)
   const doorId = useCorridorStore((s) => s.facingDoorId)
+  const unlocked = useSessionStore((s) => s.status === 'unlocked')
 
   useEffect(() => {
+    if (!unlocked) return undefined
     if (phase !== CAMERA_PHASE.DOOR_OPENING || doorId == null) return undefined
     const timer = window.setTimeout(() => {
       navigate(`/room/${doorId}`)
     }, DOOR_OPEN_DURATION * 1000)
     return () => window.clearTimeout(timer)
-  }, [phase, doorId, navigate])
+  }, [phase, doorId, navigate, unlocked])
 
   return null
 }
@@ -86,6 +92,8 @@ function AnimationWatchdog() {
 }
 
 export default function ProfilePage() {
+  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+
   return (
     <div className="relative h-full min-h-screen w-full overflow-hidden bg-corridor-bg">
       <ResetLookOnMount />
@@ -102,12 +110,14 @@ export default function ProfilePage() {
         onCreated={({ gl }) => {
           gl.toneMappingExposure = 1.12
         }}
+        style={{ pointerEvents: unlocked ? 'auto' : 'none' }}
       >
         <Suspense fallback={null}>
           <CorridorScene />
         </Suspense>
       </Canvas>
       <ProfileHud />
+      <SiteMenu />
     </div>
   )
 }

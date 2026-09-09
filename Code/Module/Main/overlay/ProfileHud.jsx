@@ -1,11 +1,15 @@
 import React from 'react'
 import { CAMERA_PHASE, STOP_COUNT, useCorridorStore } from '../store/corridorStore.js'
+import { CONSOLE_LOGIN } from '@app/config/site.js'
+import { useSessionStore } from '@app/store/sessionStore.js'
 
 export default function ProfileHud() {
   const stopIndex = useCorridorStore((s) => s.stopIndex)
   const cameraPhase = useCorridorStore((s) => s.cameraPhase)
   const onMidClick = useCorridorStore((s) => s.onMidClick)
   const walkBack = useCorridorStore((s) => s.walkBack)
+  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const checking = useSessionStore((s) => s.status === 'checking')
 
   const walking =
     cameraPhase === CAMERA_PHASE.WALKING_FORWARD ||
@@ -17,11 +21,13 @@ export default function ProfileHud() {
   const facing = cameraPhase === CAMERA_PHASE.FACING_DOOR
   const atEnd = stopIndex >= STOP_COUNT - 1
   const canMid =
-    (cameraPhase === CAMERA_PHASE.LOOK_FORWARD && !atEnd) || facing
-  const canBack = cameraPhase === CAMERA_PHASE.LOOK_FORWARD && stopIndex > 0
+    unlocked && ((cameraPhase === CAMERA_PHASE.LOOK_FORWARD && !atEnd) || facing)
+  const canBack = unlocked && cameraPhase === CAMERA_PHASE.LOOK_FORWARD && stopIndex > 0
 
   let hint = 'Click the corridor to walk forward'
-  if (opening) hint = 'Opening'
+  if (!unlocked) {
+    hint = checking ? 'Checking console session' : 'Sign in from the menu to enter'
+  } else if (opening) hint = 'Opening'
   else if (turning) hint = 'Turning'
   else if (walking) {
     hint = cameraPhase === CAMERA_PHASE.WALKING_BACK ? 'Walking back' : 'Walking forward'
@@ -30,23 +36,32 @@ export default function ProfileHud() {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10">
-      <div className="absolute left-6 top-5 text-sm tracking-wide text-white/80">
+      <div className="absolute left-1/2 top-5 -translate-x-1/2 text-sm tracking-wide text-white/80">
         Profile
       </div>
       <div className="absolute bottom-10 left-0 right-0 text-center">
-        <button
-          type="button"
-          disabled={!canMid}
-          onClick={() => onMidClick()}
-          className={`pointer-events-auto bg-transparent text-sm ${
-            canMid
-              ? 'cursor-pointer text-corridor-warm/90 hover:text-corridor-warm'
-              : 'cursor-default text-corridor-warm/70'
-          }`}
-        >
-          {hint}
-        </button>
-        {facing ? (
+        {unlocked ? (
+          <button
+            type="button"
+            disabled={!canMid}
+            onClick={() => onMidClick()}
+            className={`pointer-events-auto bg-transparent text-sm ${
+              canMid
+                ? 'cursor-pointer text-corridor-warm/90 hover:text-corridor-warm'
+                : 'cursor-default text-corridor-warm/70'
+            }`}
+          >
+            {hint}
+          </button>
+        ) : (
+          <a
+            href={CONSOLE_LOGIN}
+            className="pointer-events-auto text-sm text-corridor-warm hover:text-white"
+          >
+            {hint}
+          </a>
+        )}
+        {unlocked && facing ? (
           <div className="mt-2 text-xs text-white/45">Click the door again to open</div>
         ) : null}
         {canBack ? (

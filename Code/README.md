@@ -2,6 +2,8 @@
 
 在本目录执行 `npm install` 与 `npm run dev`（http://localhost:5173）。
 
+生产部署（阿里云 ECS、Nginx、是否用 PM2）见 [System_doc/部署/阿里云_ECS_Nginx.md](../System_doc/部署/阿里云_ECS_Nginx.md)。
+
 功能代码按模块放在 `Module/`，不要把业务堆回根目录。
 
 ```
