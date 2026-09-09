@@ -39,7 +39,7 @@ export default function RoomPage() {
   }
 
   if (REQUIRE_CONSOLE && status === 'guest') {
-    return <Navigate to="/" replace />
+    return <Navigate to={`/login?next=/room/${doorId}`} replace />
   }
 
   if (REQUIRE_CONSOLE && status === 'checking') {

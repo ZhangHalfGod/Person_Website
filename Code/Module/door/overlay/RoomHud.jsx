@@ -1,9 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { useSessionStore } from '@app/store/sessionStore.js'
+import { selectCanExplore, useSessionStore } from '@app/store/sessionStore.js'
 
 export default function RoomHud({ label }) {
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
 
   return (
     <div className="pointer-events-none absolute inset-0 z-10">

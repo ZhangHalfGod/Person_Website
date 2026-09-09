@@ -8,7 +8,7 @@
 | --- | --- |
 | 公网 IP 打开是不是本站 | 可以。Nginx `location /` 改指向本仓库 `Code/dist` |
 | 用 PM2 管本站 | **可以，但不需要。** 本站是 Vite 静态 SPA，和 MechAssist **前端**一样由 Nginx 读 `dist`。PM2 继续只跑 `mechassist-api`、`mcp-gaode`、`mcp-faq`。若一定要出现在 `pm2 ls`，用 `Code/deploy/ecosystem.config.cjs` |
-| MechAssist 去哪 | 生产构建 `base=/console/`，公网路径 `/console/`、`/console/login` |
+| MechAssist 去哪 | 生产构建 `base=/console/`，公网路径 `/console/`。登录页在本站 `/login`，不跳 MechAssist |
 | 未登录走廊 | 只渲染画面，点击/键盘无效；左上汉堡菜单可开侧栏，走「控制台登录」 |
 
 当前 Nginx `server_name` 是 `8.163.18.183`。若要以 `8.139.112.95` 访问，把两个 IP 都写进 `server_name`（示例配置已写）。
@@ -18,13 +18,13 @@
 ```text
 浏览器
   /              Person_Website（走廊，未登录静态）
-  /console/      MechAssist SPA
-  /console/login 控制台登录（成功后 ?next=/ 回到走廊）
+  /login         本站控制台登录（暗色门户风格，调同源 POST /api/auth/login）
+  /console/      MechAssist SPA（须先登录；未登录从侧栏点「机械助手」会进 /login?next=/console/）
   /api /auth     仍是 PM2 :3002
-  /gaode/ /glasses/ /agents-skill/  与现网相同
+  /gaode/ /glasses/ /agents-skill/  须先登录，否则侧栏跳 /login?next=…
 ```
 
-登录后本站读同源 `localStorage.console_auth_token` / IndexedDB，再请求 `GET /api/auth/me`。通过才解锁行走与开门。
+登录成功后把 token 写入 `localStorage.console_auth_token`（及 `auth_token`），再请求 `GET /api/auth/me`。通过才解锁行走、开门，以及机械助手 / 出行 / 智能眼镜 / Agents Skill。
 
 ## 服务器步骤
 
@@ -94,7 +94,9 @@ pm2 save
 
 - `http://8.139.112.95/`：走廊静帧 + 左上三杠侧栏（开发者文档、控制台登录）
 - 未登录：点走廊、键盘 WASD 无效
-- 侧栏「控制台登录」→ `/console/login?next=/`，登录后回到 `/`，走廊可走
+- 侧栏「控制台登录」→ `/login`（本站页面，不是 MechAssist）
+- 未登录点「机械助手 / 出行助手 / 智能眼镜 / Agents Skill」→ `/login?next=对应路径`
+- 登录成功后回到 `/`（或 `next`）；走廊可走，合作入口可跳转
 - MechAssist 顶栏「首页」回到门户；「控制台」留在 `/console/`
 - `http://8.139.112.95/gaode/`、`/glasses/`、`/api` 与改前一致
 

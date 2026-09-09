@@ -1,14 +1,15 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { CAMERA_PHASE, STOP_COUNT, useCorridorStore } from '../store/corridorStore.js'
 import { CONSOLE_LOGIN } from '@app/config/site.js'
-import { useSessionStore } from '@app/store/sessionStore.js'
+import { selectCanExplore, useSessionStore } from '@app/store/sessionStore.js'
 
 export default function ProfileHud() {
   const stopIndex = useCorridorStore((s) => s.stopIndex)
   const cameraPhase = useCorridorStore((s) => s.cameraPhase)
   const onMidClick = useCorridorStore((s) => s.onMidClick)
   const walkBack = useCorridorStore((s) => s.walkBack)
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
   const checking = useSessionStore((s) => s.status === 'checking')
 
   const walking =
@@ -54,12 +55,12 @@ export default function ProfileHud() {
             {hint}
           </button>
         ) : (
-          <a
-            href={CONSOLE_LOGIN}
+          <Link
+            to={CONSOLE_LOGIN}
             className="pointer-events-auto text-sm text-corridor-warm hover:text-white"
           >
             {hint}
-          </a>
+          </Link>
         )}
         {unlocked && facing ? (
           <div className="mt-2 text-xs text-white/45">Click the door again to open</div>

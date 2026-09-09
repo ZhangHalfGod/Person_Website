@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { useNavigate } from 'react-router-dom'
 import ProfileHud from '../overlay/ProfileHud.jsx'
 import SiteMenu from '@app/overlay/SiteMenu.jsx'
-import { useSessionStore } from '@app/store/sessionStore.js'
+import { selectCanExplore, useSessionStore } from '@app/store/sessionStore.js'
 import CorridorScene from '../scene/CorridorScene.jsx'
 import {
   CAMERA_PHASE,
@@ -16,7 +16,7 @@ import {
 function WalkKeys() {
   const onMidClick = useCorridorStore((s) => s.onMidClick)
   const walkBack = useCorridorStore((s) => s.walkBack)
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
 
   useEffect(() => {
     if (!unlocked) return undefined
@@ -47,7 +47,7 @@ function OpenDoorRouter() {
   const navigate = useNavigate()
   const phase = useCorridorStore((s) => s.cameraPhase)
   const doorId = useCorridorStore((s) => s.facingDoorId)
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
 
   useEffect(() => {
     if (!unlocked) return undefined
@@ -92,7 +92,7 @@ function AnimationWatchdog() {
 }
 
 export default function ProfilePage() {
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
 
   return (
     <div className="relative h-full min-h-screen w-full overflow-hidden bg-corridor-bg">

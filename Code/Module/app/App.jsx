@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import ProfilePage from '@main/pages/ProfilePage.jsx'
 import RoomPage from '@door/pages/RoomPage.jsx'
+import LoginPage from './pages/LoginPage.jsx'
 import { useSessionStore } from './store/sessionStore.js'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<ProfilePage />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/room/:doorId" element={<RoomPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

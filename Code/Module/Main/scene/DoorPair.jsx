@@ -6,7 +6,7 @@ import rooms from '@main/data/rooms.json'
 import { getDoorZ } from './cameraStops.js'
 import { INNER_WIDTH, DOOR_W } from './corridorLayout.js'
 import { CAMERA_PHASE, DOOR_OPEN_DURATION, useCorridorStore } from '../store/corridorStore.js'
-import { useSessionStore } from '@app/store/sessionStore.js'
+import { selectCanExplore, useSessionStore } from '@app/store/sessionStore.js'
 import { easeInOutCubic } from './easing.js'
 import { applyNamedMaterials, cloneGltf, doorMaterialFor } from './gltfShared.js'
 
@@ -51,7 +51,7 @@ function WoodenDoor({ room, materials, scene }) {
   const cameraPhase = useCorridorStore((s) => s.cameraPhase)
   const facingDoorId = useCorridorStore((s) => s.facingDoorId)
   const currentStop = useCorridorStore((s) => s.stopIndex)
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
 
   const hingeX = side === 'left' ? -(INNER_WIDTH / 2) + 0.01 : INNER_WIDTH / 2 - 0.01
   const xSign = side === 'left' ? 1 : -1

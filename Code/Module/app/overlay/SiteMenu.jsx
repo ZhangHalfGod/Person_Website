@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useState } from 'react'
-import { CONSOLE_CHAT, CONSOLE_LOGIN, PORTAL_GROUPS } from '../config/site.js'
-import { useSessionStore } from '../store/sessionStore.js'
+import { Link } from 'react-router-dom'
+import { CONSOLE_LOGIN, PORTAL_GROUPS, loginHref } from '../config/site.js'
+import { selectSignedIn, useSessionStore } from '../store/sessionStore.js'
 
 function ExternalIcon() {
   return (
@@ -13,36 +14,45 @@ function ExternalIcon() {
   )
 }
 
-function MenuLink({ item, unlocked, onNavigate }) {
+function MenuLink({ item, signedIn, onNavigate }) {
   const isLogin = item.auth === 'login'
-  const href = isLogin && unlocked ? CONSOLE_CHAT : item.href
-  const label = isLogin && unlocked ? '进入控制台' : item.label
-  const external = item.external || (isLogin && unlocked)
+  const gated = Boolean(item.requiresAuth) && !signedIn
+  const href = gated ? loginHref(item.href) : isLogin ? CONSOLE_LOGIN : item.href
+  const label = isLogin && signedIn ? '已登录' : item.label
+  const showExternal = item.external && !gated && !isLogin
+
+  const className = `flex items-center py-2 text-[15px] ${
+    isLogin && signedIn ? 'text-white/40' : 'text-white/90 hover:text-white'
+  }`
+
+  const onClick = (event) => {
+    if (item.id === 'overview' || (isLogin && signedIn)) {
+      event.preventDefault()
+      onNavigate()
+    }
+  }
+
+  if (showExternal) {
+    return (
+      <a href={href} className={className} onClick={onClick}>
+        <span>{label}</span>
+        <ExternalIcon />
+      </a>
+    )
+  }
 
   return (
-    <a
-      href={href}
-      className="flex items-center py-2 text-[15px] text-white/90 hover:text-white"
-      {...(external ? { target: item.id === 'overview' ? undefined : '_self', rel: 'noreferrer' } : {})}
-      onClick={(event) => {
-        if (item.id === 'overview') {
-          event.preventDefault()
-          onNavigate()
-        }
-      }}
-    >
+    <Link to={href} className={className} onClick={onClick}>
       <span>{label}</span>
-      {external && item.id !== 'overview' ? <ExternalIcon /> : null}
-    </a>
+    </Link>
   )
 }
 
 export default function SiteMenu() {
   const [open, setOpen] = useState(false)
   const titleId = useId()
-  const status = useSessionStore((s) => s.status)
+  const signedIn = useSessionStore(selectSignedIn)
   const user = useSessionStore((s) => s.user)
-  const unlocked = status === 'unlocked'
 
   useEffect(() => {
     if (!open) return undefined
@@ -98,12 +108,12 @@ export default function SiteMenu() {
               <p id={titleId} className="text-sm tracking-wide text-white/45">
                 门户
               </p>
-              {unlocked && user?.email ? (
+              {signedIn && user?.email ? (
                 <p className="max-w-[14rem] truncate text-xs text-white/40">{user.email}</p>
               ) : (
-                <a href={CONSOLE_LOGIN} className="text-xs text-corridor-warm/80 hover:text-corridor-warm">
+                <Link to={CONSOLE_LOGIN} className="text-xs text-corridor-warm hover:text-[#f0b56a]">
                   登录控制台
-                </a>
+                </Link>
               )}
             </div>
             <div className="grid flex-1 grid-cols-1 gap-10 px-8 py-6 sm:grid-cols-2 sm:gap-0">
@@ -118,7 +128,7 @@ export default function SiteMenu() {
                       <MenuLink
                         key={item.id}
                         item={item}
-                        unlocked={unlocked}
+                        signedIn={signedIn}
                         onNavigate={() => setOpen(false)}
                       />
                     ))}

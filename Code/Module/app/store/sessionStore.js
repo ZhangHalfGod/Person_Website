@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { AUTH_ME, REQUIRE_CONSOLE, TOKEN_KEY } from '../config/site.js'
+import { AUTH_LOGIN, AUTH_ME, REQUIRE_CONSOLE, TOKEN_KEY } from '../config/site.js'
 
 const IDB_NAME = 'LifeCoachAuthDB'
 const IDB_STORE = 'authData'
@@ -9,6 +9,15 @@ function readLocalToken() {
     return window.localStorage.getItem(TOKEN_KEY) || window.localStorage.getItem('auth_token')
   } catch {
     return null
+  }
+}
+
+function persistToken(token) {
+  try {
+    window.localStorage.setItem(TOKEN_KEY, token)
+    window.localStorage.setItem('auth_token', token)
+  } catch {
+    /* ignore quota */
   }
 }
 
@@ -54,6 +63,14 @@ function readIndexedDbToken() {
   })
 }
 
+function parseAuthPayload(json) {
+  const payload = json?.success === true && json.data !== undefined ? json.data : json
+  const user = payload?.user || payload
+  const token = payload?.token
+  if (!token || !user || !user.id) return null
+  return { token, user }
+}
+
 async function verifyToken(token) {
   if (!token) return null
   const response = await fetch(AUTH_ME, {
@@ -68,36 +85,56 @@ async function verifyToken(token) {
 }
 
 export const useSessionStore = create((set, get) => ({
-  status: REQUIRE_CONSOLE ? 'checking' : 'unlocked',
+  status: 'checking',
   user: null,
   token: null,
   requireConsole: REQUIRE_CONSOLE,
-  get unlocked() {
-    return get().status === 'unlocked'
+  login: async (email, password) => {
+    const response = await fetch(AUTH_LOGIN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    })
+    const json = await response.json().catch(() => ({}))
+    if (!response.ok) {
+      throw new Error(json.error || json.message || '登录失败，请检查邮箱和密码')
+    }
+    const session = parseAuthPayload(json)
+    if (!session) {
+      throw new Error('服务器返回格式错误')
+    }
+    persistToken(session.token)
+    set({ status: 'unlocked', user: session.user, token: session.token })
+    return session
   },
   refresh: async () => {
-    if (!REQUIRE_CONSOLE) {
+    const applyGuestWalk = () => {
+      if (REQUIRE_CONSOLE) {
+        set({ status: 'guest', user: null, token: null })
+        return false
+      }
       set({ status: 'unlocked', user: null, token: null })
-      return true
+      return false
     }
     set({ status: 'checking' })
     try {
       const token = readLocalToken() || (await readIndexedDbToken())
       const session = await verifyToken(token)
-      if (!session) {
-        set({ status: 'guest', user: null, token: null })
-        return false
-      }
-      try {
-        window.localStorage.setItem(TOKEN_KEY, session.token)
-      } catch {
-        /* ignore quota */
-      }
+      if (!session) return applyGuestWalk()
+      persistToken(session.token)
       set({ status: 'unlocked', user: session.user, token: session.token })
       return true
     } catch {
-      set({ status: 'guest', user: null, token: null })
-      return false
+      return applyGuestWalk()
     }
   }
 }))
+
+export function selectSignedIn(state) {
+  return state.status === 'unlocked' && Boolean(state.user)
+}
+
+export function selectCanExplore(state) {
+  if (!REQUIRE_CONSOLE) return true
+  return state.status === 'unlocked' && Boolean(state.user)
+}

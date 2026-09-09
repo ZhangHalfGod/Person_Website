@@ -7,7 +7,7 @@ import {
   TURN_DURATION,
   useCorridorStore
 } from '../store/corridorStore.js'
-import { useSessionStore } from '@app/store/sessionStore.js'
+import { selectCanExplore, useSessionStore } from '@app/store/sessionStore.js'
 import { getStopZ } from './cameraStops.js'
 import { CAM_Y } from './corridorLayout.js'
 import { easeInOutCubic } from './easing.js'
@@ -91,7 +91,7 @@ export function WalkHitboxes() {
   const cameraPhase = useCorridorStore((s) => s.cameraPhase)
   const onMidClick = useCorridorStore((s) => s.onMidClick)
   const walkBack = useCorridorStore((s) => s.walkBack)
-  const unlocked = useSessionStore((s) => s.status === 'unlocked')
+  const unlocked = useSessionStore(selectCanExplore)
   const gl = useThree((state) => state.gl)
   const camZ = getStopZ(stopIndex)
   const looking = cameraPhase === CAMERA_PHASE.LOOK_FORWARD
