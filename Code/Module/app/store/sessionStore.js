@@ -21,6 +21,66 @@ function persistToken(token) {
   }
 }
 
+function clearLocalToken() {
+  try {
+    window.localStorage.removeItem(TOKEN_KEY)
+    window.localStorage.removeItem('auth_token')
+    window.localStorage.removeItem('user_data')
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearIndexedDbToken() {
+  return new Promise((resolve) => {
+    if (typeof indexedDB === 'undefined') {
+      resolve()
+      return
+    }
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
+      resolve()
+    }
+    const timer = window.setTimeout(finish, 1200)
+    const request = indexedDB.open(IDB_NAME)
+    request.onerror = () => {
+      window.clearTimeout(timer)
+      finish()
+    }
+    request.onsuccess = () => {
+      const db = request.result
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.close()
+        window.clearTimeout(timer)
+        finish()
+        return
+      }
+      const tx = db.transaction(IDB_STORE, 'readwrite')
+      tx.objectStore(IDB_STORE).delete('auth_data')
+      tx.oncomplete = () => {
+        db.close()
+        window.clearTimeout(timer)
+        finish()
+      }
+      tx.onerror = () => {
+        db.close()
+        window.clearTimeout(timer)
+        finish()
+      }
+    }
+  })
+}
+
+function applySignedOut(set) {
+  if (REQUIRE_CONSOLE) {
+    set({ status: 'guest', user: null, token: null })
+    return
+  }
+  set({ status: 'unlocked', user: null, token: null })
+}
+
 function readIndexedDbToken() {
   return new Promise((resolve) => {
     if (typeof indexedDB === 'undefined') {
@@ -106,6 +166,11 @@ export const useSessionStore = create((set, get) => ({
     persistToken(session.token)
     set({ status: 'unlocked', user: session.user, token: session.token })
     return session
+  },
+  logout: async () => {
+    clearLocalToken()
+    await clearIndexedDbToken()
+    applySignedOut(set)
   },
   refresh: async () => {
     const applyGuestWalk = () => {

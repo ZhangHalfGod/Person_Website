@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CONSOLE_LOGIN, PORTAL_GROUPS, loginHref } from '../config/site.js'
 import { selectSignedIn, useSessionStore } from '../store/sessionStore.js'
 
@@ -14,19 +14,24 @@ function ExternalIcon() {
   )
 }
 
-function MenuLink({ item, signedIn, onNavigate }) {
+function MenuLink({ item, signedIn, onNavigate, onLogout }) {
   const isLogin = item.auth === 'login'
   const gated = Boolean(item.requiresAuth) && !signedIn
-  const href = gated ? loginHref(item.href) : isLogin ? CONSOLE_LOGIN : item.href
-  const label = isLogin && signedIn ? '已登录' : item.label
+  const href = gated ? loginHref(item.href) : item.href
   const showExternal = item.external && !gated && !isLogin
 
-  const className = `flex items-center py-2 text-[15px] ${
-    isLogin && signedIn ? 'text-white/40' : 'text-white/90 hover:text-white'
-  }`
+  const className = 'flex items-center py-2 text-[15px] text-white/90 hover:text-white'
+
+  if (isLogin && signedIn) {
+    return (
+      <button type="button" className={className} onClick={onLogout}>
+        退出登录
+      </button>
+    )
+  }
 
   const onClick = (event) => {
-    if (item.id === 'overview' || (isLogin && signedIn)) {
+    if (item.id === 'overview') {
       event.preventDefault()
       onNavigate()
     }
@@ -35,7 +40,7 @@ function MenuLink({ item, signedIn, onNavigate }) {
   if (showExternal) {
     return (
       <a href={href} className={className} onClick={onClick}>
-        <span>{label}</span>
+        <span>{item.label}</span>
         <ExternalIcon />
       </a>
     )
@@ -43,7 +48,7 @@ function MenuLink({ item, signedIn, onNavigate }) {
 
   return (
     <Link to={href} className={className} onClick={onClick}>
-      <span>{label}</span>
+      <span>{item.label}</span>
     </Link>
   )
 }
@@ -51,8 +56,16 @@ function MenuLink({ item, signedIn, onNavigate }) {
 export default function SiteMenu() {
   const [open, setOpen] = useState(false)
   const titleId = useId()
+  const navigate = useNavigate()
   const signedIn = useSessionStore(selectSignedIn)
   const user = useSessionStore((s) => s.user)
+  const logout = useSessionStore((s) => s.logout)
+
+  const handleLogout = async () => {
+    await logout()
+    setOpen(false)
+    navigate('/')
+  }
 
   useEffect(() => {
     if (!open) return undefined
@@ -109,7 +122,16 @@ export default function SiteMenu() {
                 门户
               </p>
               {signedIn && user?.email ? (
-                <p className="max-w-[14rem] truncate text-xs text-white/40">{user.email}</p>
+                <div className="flex max-w-[14rem] flex-col items-end gap-1">
+                  <p className="truncate text-xs text-white/40">{user.email}</p>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="text-xs text-corridor-warm hover:text-[#f0b56a]"
+                  >
+                    退出登录
+                  </button>
+                </div>
               ) : (
                 <Link to={CONSOLE_LOGIN} className="text-xs text-corridor-warm hover:text-[#f0b56a]">
                   登录控制台
@@ -130,6 +152,7 @@ export default function SiteMenu() {
                         item={item}
                         signedIn={signedIn}
                         onNavigate={() => setOpen(false)}
+                        onLogout={handleLogout}
                       />
                     ))}
                   </nav>
