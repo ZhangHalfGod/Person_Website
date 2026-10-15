@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>房间光影质量路线对比（对照 room-interior-v1）</title>
+<style>
+  :root {
+    --bg: #12100e;
+    --panel: #1c1814;
+    --panel2: #241f1a;
+    --ink: #e8dfd2;
+    --muted: #a89884;
+    --line: #3a322a;
+    --accent: #c4a574;
+    --warm: #d4a574;
+    --ok: #7d9e6a;
+    --warn: #c9a227;
+    --dim: #6b5e50;
+    --rec: #8b6b3d;
+    --rec-bg: rgba(196, 165, 116, 0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: radial-gradient(ellipse at 30% 0%, #1a1612 0%, var(--bg) 55%);
+    color: var(--ink);
+    line-height: 1.65;
+    padding: 2rem 1.25rem 4rem;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 {
+    font-weight: 650;
+    font-size: 1.65rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.5rem;
+    color: var(--warm);
+  }
+  .lead {
+    color: var(--muted);
+    font-size: 1.02rem;
+    margin: 0 0 1.75rem;
+    max-width: 52em;
+  }
+  .lead strong { color: var(--ink); font-weight: 600; }
+  .constraints {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 2rem;
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+  .constraints h2 {
+    margin: 0 0 0.45rem;
+    font-size: 0.95rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .constraints ul { margin: 0; padding-left: 1.2rem; }
+  .constraints li { margin: 0.2rem 0; }
+  .route {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.25rem 1.35rem 1.4rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .route.recommended {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(196,165,116,0.25), 0 8px 28px rgba(0,0,0,0.35);
+    background: linear-gradient(180deg, var(--rec-bg), var(--panel) 40%);
+  }
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    background: var(--panel2);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    vertical-align: middle;
+    margin-left: 0.5rem;
+  }
+  .badge.rec {
+    background: var(--rec);
+    color: #1a140c;
+    border-color: var(--accent);
+  }
+  .route h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.2rem;
+    color: var(--ink);
+  }
+  .tagline {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin: 0 0 1rem;
+  }
+  .svg-box {
+    background: #0e0c0a;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.75rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+  svg { display: block; max-width: 100%; height: auto; }
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem 1.25rem;
+  }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+  .meta h3 {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .meta ul { margin: 0; padding-left: 1.15rem; font-size: 0.9rem; color: var(--muted); }
+  .meta li { margin: 0.15rem 0; }
+  .effort {
+    margin-top: 0.85rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+    padding: 0.55rem 0.75rem;
+    background: var(--panel2);
+    border-radius: 6px;
+    border-left: 3px solid var(--dim);
+  }
+  .effort.rec-effort { border-left-color: var(--ok); }
+  .closes {
+    margin-top: 0.65rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .closes em { color: var(--warm); font-style: normal; }
+  .next {
+    background: var(--panel2);
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    padding: 1.15rem 1.25rem;
+    margin-top: 0.5rem;
+  }
+  .next h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.05rem;
+    color: var(--warm);
+  }
+  .next p { margin: 0.35rem 0; color: var(--muted); font-size: 0.95rem; }
+  .next code {
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.86em;
+    background: #0e0c0a;
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  footer {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: var(--dim);
+    border-top: 1px solid var(--line);
+    padding-top: 1rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>房间光影质量路线对比（对照 room-interior-v1）</h1>
+<p class="lead">
+  目标图 <strong>room-interior-v1.png</strong> 的气质差，主要在<strong>间接光（墙角漏光、暗部层次）</strong>与<strong>光泽反射（地板镜面感、金框高光）</strong>。
+  现管线是瘦 GLB + MeshStandard + 实时几盏灯，浏览器实时渲染很难直接追上 Cycles / 离线那张图。
+  下面三条路线对照投入与能闭上的缺口；<strong>B 为已选路径</strong>。
+</p>
+
+<div class="constraints">
+  <h2>已锁约束（本阶段）</h2>
+  <ul>
+    <li>仍 Vite + React + R3F；不换 Unity / Unreal 进实时；不引入 Houdini 进实时链路</li>
+    <li>资产规则不变：瘦 GLB（不带贴图）+ 贴图 JPG；门牌不烤进贴图</li>
+    <li>八门共用一室内壳；走廊与房间各一套 Canvas</li>
+    <li>不做画芯/黑板编辑器、存档、物理（明确延期项）</li>
+  </ul>
+</div>
+
+<!-- ========== A ========== -->
+<section class="route" id="route-a">
+  <h2>A. Three.js 实时增强 <span class="badge">可选增强</span></h2>
+  <p class="tagline">仍纯实时：IBL / PMREM、材质光泽、ACES、软阴影 — 拉近光泽，暗部电影感有限。</p>
+  <div class="svg-box" aria-label="路线 A 管线示意">
+    <svg viewBox="0 0 920 168" xmlns="http://www.w3.org/2000/svg" role="img">
+      <defs>
+        <marker id="arrA" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#c4a574"/>
+        </marker>
+      </defs>
+      <rect x="8" y="48" width="118" height="52" rx="8" fill="#241f1a" stroke="#c4a574" stroke-width="1.5"/>
+      <text x="67" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">HDR / 环境</text>
+      <text x="67" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">PMREM IBL</text>
+      <line x1="126" y1="74" x2="168" y2="74" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <rect x="170" y="48" width="130" height="52" rx="8" fill="#241f1a" stroke="#3a322a" stroke-width="1.5"/>
+      <text x="235" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">材质精修</text>
+      <text x="235" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">rough / clearcoat</text>
+      <line x1="300" y1="74" x2="342" y2="74" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <rect x="344" y="48" width="130" height="52" rx="8" fill="#241f1a" stroke="#3a322a" stroke-width="1.5"/>
+      <text x="409" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">实时灯 + 影</text>
+      <text x="409" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">软阴影 / emissive</text>
+      <line x1="474" y1="74" x2="516" y2="74" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <rect x="518" y="48" width="130" height="52" rx="8" fill="#241f1a" stroke="#3a322a" stroke-width="1.5"/>
+      <text x="583" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">ACES + Bloom</text>
+      <text x="583" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">曝光 / 轻泛光</text>
+      <line x1="648" y1="74" x2="690" y2="74" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrA)"/>
+      <rect x="692" y="48" width="140" height="52" rx="8" fill="#1c1814" stroke="#7d9e6a" stroke-width="1.5"/>
+      <text x="762" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">R3F 房间页</text>
+      <text x="762" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">光泽↑ 间接光弱</text>
+      <text x="20" y="28" fill="#a89884" font-size="12" font-family="Segoe UI,sans-serif">管线：不改导出规则，只加环境与后期</text>
+    </svg>
+  </div>
+  <div class="grid2 meta">
+    <div>
+      <h3>优点</h3>
+      <ul>
+        <li>改动集中在前端与一份 HDR，不动烘焙管线</li>
+        <li>地板 / 金框立刻有真反射，和目标图的「亮」更接近</li>
+        <li>与现有入场闪灯、拉线台灯兼容最好</li>
+      </ul>
+    </div>
+    <div>
+      <h3>缺点</h3>
+      <ul>
+        <li>墙角、天花间接光仍靠实时灯硬撑，暗部层次难追 PNG</li>
+        <li>多灯 + 软阴影成本上升，移动端更吃紧</li>
+        <li>再抠 roughness 也补不出 Cycles 那种漏光</li>
+      </ul>
+    </div>
+  </div>
+  <div class="effort">投入：约 0.5–2 天（HDR + 材质 + 色调映射对照）</div>
+  <p class="closes">对照目标图能闭上：<em>金属/地板光泽、高光形状</em>。仍缺口：<em>间接光、软边漏光、整体电影暗部</em>。</p>
+</section>
+
+<!-- ========== B ========== -->
+<section class="route recommended" id="route-b">
+  <h2>B. Blender 烘焙进网页 <span class="badge rec">推荐 / 已选</span></h2>
+  <p class="tagline">Cycles 烘 lightmap / AO → 第二套 UV → 前端 lightMap/aoMap。网页里性价比最高的「高质量」。</p>
+  <div class="svg-box" aria-label="路线 B 管线示意">
+    <svg viewBox="0 0 920 200" xmlns="http://www.w3.org/2000/svg" role="img">
+      <defs>
+        <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#c4a574"/>
+        </marker>
+      </defs>
+      <rect x="8" y="56" width="128" height="56" rx="8" fill="#241f1a" stroke="#c4a574" stroke-width="1.5"/>
+      <text x="72" y="80" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">room_phase2</text>
+      <text x="72" y="98" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">.blend + 稳定灯</text>
+      <line x1="136" y1="84" x2="172" y2="84" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrB)"/>
+      <rect x="174" y="56" width="118" height="56" rx="8" fill="#241f1a" stroke="#3a322a" stroke-width="1.5"/>
+      <text x="233" y="80" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">UV2 展开</text>
+      <text x="233" y="98" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">lightmap 专用</text>
+      <line x1="292" y1="84" x2="328" y2="84" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrB)"/>
+      <rect x="330" y="56" width="128" height="56" rx="8" fill="#241f1a" stroke="#3a322a" stroke-width="1.5"/>
+      <text x="394" y="80" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">Cycles Bake</text>
+      <text x="394" y="98" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">Diffuse / AO</text>
+      <line x1="458" y1="84" x2="494" y2="84" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrB)"/>
+      <rect x="496" y="40" width="140" height="40" rx="8" fill="#1c1814" stroke="#c4a574" stroke-width="1.2"/>
+      <text x="566" y="65" text-anchor="middle" fill="#e8dfd2" font-size="12" font-family="Segoe UI,sans-serif">*_lightmap.jpg</text>
+      <rect x="496" y="88" width="140" height="40" rx="8" fill="#1c1814" stroke="#3a322a" stroke-width="1.2"/>
+      <text x="566" y="113" text-anchor="middle" fill="#e8dfd2" font-size="12" font-family="Segoe UI,sans-serif">*_ao.jpg + 瘦 GLB</text>
+      <line x1="636" y1="84" x2="678" y2="84" stroke="#c4a574" stroke-width="1.5" marker-end="url(#arrB)"/>
+      <rect x="680" y="56" width="152" height="56" rx="8" fill="#1c1814" stroke="#7d9e6a" stroke-width="2"/>
+      <text x="756" y="80" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">R3F lightMap</text>
+      <text x="756" y="98" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">+ 实时闪灯/台灯</text>
+      <text x="20" y="28" fill="#c4a574" font-size="12" font-family="Segoe UI,sans-serif">★ 已选：间接光烤进贴图，动态只留入场闪灯与拉线</text>
+      <text x="20" y="175" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">稳定态（入场 ≥10s 后）对齐烘焙；闪灯用 emissive / 强度调制，避免与 lightMap 双计</text>
+    </svg>
+  </div>
+  <div class="grid2 meta">
+    <div>
+      <h3>优点</h3>
+      <ul>
+        <li>墙角漏光、地板受光、暗部层次最接近目标 PNG</li>
+        <li>仍留在现有 Vite+R3F；不换引擎、不破瘦 GLB+JPG 规则</li>
+        <li>八门共一壳：烘一次，全门复用</li>
+        <li>与文档「预烘 lightmap」以后档一致，房间静帧最适合先做</li>
+      </ul>
+    </div>
+    <div>
+      <h3>缺点</h3>
+      <ul>
+        <li>要做 UV2、烘焙验收、防 UV 重叠</li>
+        <li>进场闪灯与烘焙光需约定（稳定态烘 + 实时只调 emissive）</li>
+        <li>多几张 JPG，包体略增；分辨率要控</li>
+      </ul>
+    </div>
+  </div>
+  <div class="effort rec-effort">投入：约 3–7 天分批（Bake0 大面试点 → 家具 → 调参验收）</div>
+  <p class="closes">对照目标图能闭上：<em>间接光、暗部层次、大面受光气质</em>。光泽仍可叠 A 的 IBL 作加分项。反射镜面感不如纯实时 IBL 灵活，但整体气质最接近。</p>
+</section>
+
+<!-- ========== C ========== -->
+<section class="route" id="route-c">
+  <h2>C. Unity 6 / Unreal 独立客户端 <span class="badge">文档以后</span></h2>
+  <p class="tagline">实时 GI、探照灯、体积雾 — 产品升级才换栈；本阶段明确不做。</p>
+  <div class="svg-box" aria-label="路线 C 管线示意">
+    <svg viewBox="0 0 920 168" xmlns="http://www.w3.org/2000/svg" role="img">
+      <defs>
+        <marker id="arrC" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#6b5e50"/>
+        </marker>
+      </defs>
+      <rect x="8" y="48" width="130" height="52" rx="8" fill="#241f1a" stroke="#6b5e50" stroke-width="1.5"/>
+      <text x="73" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">FBX / USD</text>
+      <text x="73" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">完整材质栈</text>
+      <line x1="138" y1="74" x2="180" y2="74" stroke="#6b5e50" stroke-width="1.5" marker-end="url(#arrC)"/>
+      <rect x="182" y="48" width="150" height="52" rx="8" fill="#241f1a" stroke="#6b5e50" stroke-width="1.5"/>
+      <text x="257" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">Unity 6 / UE</text>
+      <text x="257" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">Lumen / GI / 体积</text>
+      <line x1="332" y1="74" x2="374" y2="74" stroke="#6b5e50" stroke-width="1.5" marker-end="url(#arrC)"/>
+      <rect x="376" y="48" width="150" height="52" rx="8" fill="#241f1a" stroke="#6b5e50" stroke-width="1.5"/>
+      <text x="451" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">独立客户端</text>
+      <text x="451" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">非本站 Vite 壳</text>
+      <line x1="526" y1="74" x2="568" y2="74" stroke="#6b5e50" stroke-width="1.5" marker-end="url(#arrC)"/>
+      <rect x="570" y="48" width="160" height="52" rx="8" fill="#1c1814" stroke="#6b5e50" stroke-width="1.5"/>
+      <text x="650" y="72" text-anchor="middle" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">接近目标图</text>
+      <text x="650" y="90" text-anchor="middle" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">成本与栈已换</text>
+      <text x="20" y="28" fill="#a89884" font-size="12" font-family="Segoe UI,sans-serif">管线：与「工具边界」锁定冲突 — 本阶段禁 Unity 进实时</text>
+      <text x="20" y="140" fill="#6b5e50" font-size="12" font-family="Segoe UI,sans-serif">仅当个人站升级为独立产品、需要真·实时 GI 时再开题</text>
+    </svg>
+  </div>
+  <div class="grid2 meta">
+    <div>
+      <h3>优点</h3>
+      <ul>
+        <li>实时 GI / 体积雾 / 探照灯上限最高</li>
+        <li>工具链成熟，美术调光反馈快</li>
+      </ul>
+    </div>
+    <div>
+      <h3>缺点</h3>
+      <ul>
+        <li>整站栈重写；与现 Vite+R3F、八门共壳方案断裂</li>
+        <li>分发、体积、维护成本远超个人站需求</li>
+        <li>文档已写明本阶段不做</li>
+      </ul>
+    </div>
+  </div>
+  <div class="effort">投入：周～月级产品决策，非本阶段工作项</div>
+  <p class="closes">对照目标图：上限可齐甚至超越，但<strong>不解决「在现网页里追气质」</strong>的问题。</p>
+</section>
+
+<!-- 对比小结 SVG -->
+<section class="route" id="summary">
+  <h2>三线对照（缺口闭合）</h2>
+  <div class="svg-box">
+    <svg viewBox="0 0 920 210" xmlns="http://www.w3.org/2000/svg" role="img">
+      <text x="20" y="28" fill="#c4a574" font-size="13" font-family="Segoe UI,sans-serif">横轴：相对目标 PNG 的闭合程度（示意，非精确分）</text>
+      <!-- axis -->
+      <line x1="160" y1="50" x2="160" y2="180" stroke="#3a322a" stroke-width="1"/>
+      <line x1="160" y1="180" x2="880" y2="180" stroke="#3a322a" stroke-width="1"/>
+      <text x="160" y="198" text-anchor="middle" fill="#6b5e50" font-size="11" font-family="Segoe UI,sans-serif">低</text>
+      <text x="520" y="198" text-anchor="middle" fill="#6b5e50" font-size="11" font-family="Segoe UI,sans-serif">中</text>
+      <text x="860" y="198" text-anchor="middle" fill="#6b5e50" font-size="11" font-family="Segoe UI,sans-serif">高</text>
+      <!-- A bar -->
+      <text x="150" y="78" text-anchor="end" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">A 实时增强</text>
+      <rect x="168" y="62" width="280" height="22" rx="4" fill="#3a322a"/>
+      <rect x="168" y="62" width="200" height="22" rx="4" fill="#6b5e50"/>
+      <text x="380" y="78" fill="#a89884" font-size="11" font-family="Segoe UI,sans-serif">光泽↑ 间接光弱</text>
+      <!-- B bar -->
+      <text x="150" y="118" text-anchor="end" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">B 烘焙（已选）</text>
+      <rect x="168" y="102" width="280" height="22" rx="4" fill="#3a322a"/>
+      <rect x="168" y="102" width="420" height="22" rx="4" fill="#c4a574"/>
+      <text x="600" y="118" fill="#1a140c" font-size="11" font-family="Segoe UI,sans-serif" font-weight="600">间接光+暗部最接近</text>
+      <!-- C bar -->
+      <text x="150" y="158" text-anchor="end" fill="#e8dfd2" font-size="13" font-family="Segoe UI,sans-serif">C 独客引擎</text>
+      <rect x="168" y="142" width="280" height="22" rx="4" fill="#3a322a"/>
+      <rect x="168" y="142" width="520" height="22" rx="4" fill="#8b6b3d"/>
+      <text x="700" y="158" fill="#e8dfd2" font-size="11" font-family="Segoe UI,sans-serif">上限高 · 本阶段不做</text>
+    </svg>
+  </div>
+</section>
+
+<div class="next" id="next">
+  <h2>已选 B 后下一步</h2>
+  <p>实施细则见：</p>
+  <p><code>System_doc/3D美术/第二期/Blender烘焙进网页方案.md</code></p>
+  <p>建议批次：<strong>Bake0</strong> 地面+墙试点 → <strong>Bake1</strong> 桌凳灯框 → <strong>Bake2</strong> 对照 room-interior-v1 调参验收。入场闪灯保留实时，烘焙对齐入场后稳定态。</p>
+</div>
+
+<footer>
+  Person_Website · 对照 System_doc/door_Page/room-interior-v1.png · 与工具边界、已选定方案一致 · 非进度打勾文档
+</footer>
+
+</div>
+</body>
+</html>

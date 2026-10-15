@@ -26,11 +26,52 @@ Brass knobs / plates / lamp collars / room gold frame
            metalness is a constant 0.9 on MeshStandardMaterial, no map
            room gold/brass in Code/Module/door/scene/useRoomMaterials.js
 
-Room GLBs (geometry only, no embedded textures)
+Room GLBs (geometry + UV1/UV2 only; no embedded color maps)
   files: Code/public/models/table.glb stool.glb table_lamp.glb
          picture_frame.glb picture_lamp.glb ceiling_coffers.glb
+         bookcase.glb room_shell.glb
   work: System_doc/3D美术/第二期/room_phase2.blend
         System_doc/3D美术/第二期/_build_phase2_assets.py
         System_doc/3D美术/第二期/_build_table_stool_lamp.py
+        System_doc/3D美术/第二期/_bake0_room_shell.py
+        System_doc/3D美术/第二期/_bake1_furniture.py
+
+bookcase.glb  (corner bookcase; project original)
+  source: project original geometry
+  license: project original
+  textures: reuses wood_cabinet_worn_long via room wall JPG (CC0, above)
+           + Bake1 bookcase_lightmap.jpg / bookcase_ao.jpg
+
+room_shell.glb + room_*_lightmap.jpg + room_*_ao.jpg  (Bake0)
+  source: Cycles bake of the room shell in room_phase2.blend (stable lights, >=10s)
+  license: project original
+  used_in: Code/public/textures/door/room_floor_lightmap.jpg
+           room_floor_ao.jpg room_wall_lightmap.jpg room_wall_ao.jpg
+           Code/public/models/room_shell.glb
+           Code/Module/door/scene/RoomInterior.jsx
+           Code/Module/door/scene/useRoomMaterials.js
+
+Bake1 furniture lightmaps / AO (stable-state Cycles; project original)
+  source: room_phase2.blend Bake Lights (same set as Bake0)
+  license: project original
+  files: Code/public/textures/door/table_lightmap.jpg table_ao.jpg
+         stool_lightmap.jpg stool_ao.jpg
+         bookcase_lightmap.jpg bookcase_ao.jpg
+         picture_frame_lightmap.jpg picture_frame_ao.jpg
+         picture_lamp_lightmap.jpg picture_lamp_ao.jpg
+         table_lamp_lightmap.jpg table_lamp_ao.jpg
+         ceiling_coffers_lightmap.jpg ceiling_coffers_ao.jpg
+  used_in: Code/Module/door/scene/useRoomMaterials.js
+           Furniture.jsx Painting.jsx RoomInterior.jsx TableLamp.jsx
+
+table_lamp.glb  (Poly Haven desk lamp; PBR embedded + UV2 for Bake1 LM/AO)
+  source: https://polyhaven.com/a/desk_lamp_arm_01
+  license: CC0 1.0
+  used_in: Code/public/models/table_lamp.glb
+           Code/public/textures/door/table_lamp_lightmap.jpg
+           table_lamp_ao.jpg
+           Code/Module/door/scene/TableLamp.jsx
+  note: exception to lean-GLB rule — PH PBR stays embedded; lightmap/AO are
+        separate JPGs on UV2 (pipeline exception for this open-source prop).
 
 

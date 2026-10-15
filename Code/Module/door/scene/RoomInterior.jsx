@@ -14,7 +14,28 @@ import {
   DOOR_X
 } from './roomLayout.js'
 
-const COFFER_URL = '/models/ceiling_coffers.glb'
+import { assignLightMaps } from './bakeMaps.js'
+
+const COFFER_URL = '/models/ceiling_coffers.glb?v=bake1'
+const SHELL_URL = '/models/room_shell.glb'
+
+function shellMaterial(name, materials) {
+  if (/Floor/i.test(name)) return materials.floorLit
+  if (/Upper/i.test(name)) return materials.upperLit
+  return materials.wainscotLit
+}
+
+function BakedShell({ materials }) {
+  const { scene } = useGLTF(SHELL_URL)
+  const clone = useMemo(() => cloneGltf(scene), [scene])
+
+  useLayoutEffect(() => {
+    assignLightMaps(clone, [materials.floorLit, materials.wainscotLit, materials.upperLit])
+    applyNamedMaterials(clone, (name) => shellMaterial(name, materials), { raycast: false })
+  }, [clone, materials])
+
+  return <primitive object={clone} />
+}
 
 function WallPanel({ position, size, material, receiveShadow = true }) {
   return (
@@ -30,8 +51,9 @@ function CofferedCeiling({ materials }) {
   const root = useMemo(() => clone.getObjectByName('CofferRoot') || clone, [clone])
 
   useLayoutEffect(() => {
+    assignLightMaps(root, [materials.ceilingLit, materials.beamLit])
     applyNamedMaterials(root, (name) =>
-      /Panel/i.test(name) ? materials.ceiling : materials.beam
+      /Panel/i.test(name) ? materials.ceilingLit : materials.beamLit
     )
   }, [root, materials])
 
@@ -91,57 +113,17 @@ function DoorWall({ materials }) {
 }
 
 export default function RoomInterior({ materials }) {
-  const wallX = HALF_W + WALL_T / 2
-  const upperH = ROOM_H - WAINSCOT_H
-  const upperY = WAINSCOT_H + upperH / 2
-
   return (
     <group>
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0, 0]}
-        receiveShadow
-        material={materials.floor}
-      >
-        <planeGeometry args={[ROOM_W, ROOM_D]} />
-      </mesh>
-
+      <BakedShell materials={materials} />
       <mesh position={[0, ROOM_H, 0]} rotation={[Math.PI / 2, 0, 0]} material={materials.ceiling}>
         <planeGeometry args={[ROOM_W + WALL_T * 2, ROOM_D + WALL_T * 2]} />
       </mesh>
       <CofferedCeiling materials={materials} />
-
-      {[-1, 1].map((side) => (
-        <group key={side}>
-          <WallPanel
-            position={[side * wallX, WAINSCOT_H / 2, 0]}
-            size={[WALL_T, WAINSCOT_H, ROOM_D]}
-            material={materials.wainscot}
-          />
-          <WallPanel
-            position={[side * wallX, upperY, 0]}
-            size={[WALL_T, upperH, ROOM_D]}
-            material={materials.upperWall}
-            receiveShadow={false}
-          />
-        </group>
-      ))}
-
-      <WallPanel
-        position={[0, WAINSCOT_H / 2, HALF_D + WALL_T / 2]}
-        size={[ROOM_W + WALL_T * 2, WAINSCOT_H, WALL_T]}
-        material={materials.wainscot}
-      />
-      <WallPanel
-        position={[0, upperY, HALF_D + WALL_T / 2]}
-        size={[ROOM_W + WALL_T * 2, upperH, WALL_T]}
-        material={materials.upperWall}
-        receiveShadow={false}
-      />
-
       <DoorWall materials={materials} />
     </group>
   )
 }
 
 useGLTF.preload(COFFER_URL)
+useGLTF.preload(SHELL_URL)

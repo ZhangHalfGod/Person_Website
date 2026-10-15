@@ -2,14 +2,16 @@ import React, { useLayoutEffect, useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
 import { HALF_W, PAINTING } from './roomLayout.js'
+import FocusHit from './FocusHit.jsx'
+import { assignLightMaps } from './bakeMaps.js'
 
-const FRAME_URL = '/models/picture_frame.glb'
-const LAMP_URL = '/models/picture_lamp.glb'
+const FRAME_URL = '/models/picture_frame.glb?v=bake1'
+const LAMP_URL = '/models/picture_lamp.glb?v=bake1'
 
 function frameMat(name, materials) {
-  if (/Inner/i.test(name)) return materials.frameWood
-  if (/Outer|Corner/i.test(name)) return materials.goldDark
-  return materials.gold
+  if (/Inner/i.test(name)) return materials.frameWoodLit
+  if (/Outer|Corner/i.test(name)) return materials.goldDarkLit
+  return materials.goldLit
 }
 
 export default function Painting({ materials }) {
@@ -20,11 +22,21 @@ export default function Painting({ materials }) {
   const frame = useMemo(() => cloneGltf(frameScene), [frameScene])
   const lamp = useMemo(() => cloneGltf(lampScene), [lampScene])
   const frameRoot = useMemo(() => frame.getObjectByName('FrameRoot') || frame, [frame])
-  const lampRoot = useMemo(() => lamp.getObjectByName('LampRoot') || lamp, [lamp])
+  const lampRoot = useMemo(
+    () => lamp.getObjectByName('PictureLampRoot') || lamp.getObjectByName('LampRoot') || lamp,
+    [lamp]
+  )
 
   useLayoutEffect(() => {
+    assignLightMaps(frameRoot, [
+      materials.frameWoodLit,
+      materials.goldLit,
+      materials.goldDarkLit,
+      materials.brassFrameLit
+    ])
+    assignLightMaps(lampRoot, [materials.brassPicLampLit])
     applyNamedMaterials(frameRoot, (name) => frameMat(name, materials))
-    applyNamedMaterials(lampRoot, () => materials.brass)
+    applyNamedMaterials(lampRoot, () => materials.brassPicLampLit)
   }, [frameRoot, lampRoot, materials])
 
   return (
@@ -36,6 +48,7 @@ export default function Painting({ materials }) {
       <group position={[0, h / 2 + 0.14, 0.02]}>
         <primitive object={lampRoot} />
       </group>
+      <FocusHit focusId="painting" position={[0, 0, 0.04]} args={[w + 0.2, h + 0.35, 0.22]} />
     </group>
   )
 }

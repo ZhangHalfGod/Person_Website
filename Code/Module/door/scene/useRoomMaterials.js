@@ -2,6 +2,16 @@ import { useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useTexture } from '@react-three/drei'
 
+function prepLight(tex) {
+  tex.wrapS = THREE.ClampToEdgeWrapping
+  tex.wrapT = THREE.ClampToEdgeWrapping
+  tex.flipY = false
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 4
+  tex.needsUpdate = true
+  return tex
+}
+
 function prep(tex, { srgb = false, repeat = [1, 1] } = {}) {
   tex.wrapS = THREE.RepeatWrapping
   tex.wrapT = THREE.RepeatWrapping
@@ -33,7 +43,25 @@ export function useRoomMaterials() {
     wallNormal: '/textures/door/room_wall_normal.jpg',
     brassMap: '/textures/Main/brass_albedo.jpg',
     brassRough: '/textures/Main/brass_roughness.jpg',
-    brassNormal: '/textures/Main/brass_normal.jpg'
+    brassNormal: '/textures/Main/brass_normal.jpg',
+    floorLight: '/textures/door/room_floor_lightmap.jpg?v=g3-floor',
+    floorAo: '/textures/door/room_floor_ao.jpg?v=g3-floor',
+    wallLight: '/textures/door/room_wall_lightmap.jpg',
+    wallAo: '/textures/door/room_wall_ao.jpg',
+    tableLight: '/textures/door/table_lightmap.jpg',
+    tableAo: '/textures/door/table_ao.jpg',
+    stoolLight: '/textures/door/stool_lightmap.jpg',
+    stoolAo: '/textures/door/stool_ao.jpg',
+    bookcaseLight: '/textures/door/bookcase_lightmap.jpg',
+    bookcaseAo: '/textures/door/bookcase_ao.jpg',
+    frameLight: '/textures/door/picture_frame_lightmap.jpg',
+    frameAo: '/textures/door/picture_frame_ao.jpg',
+    picLampLight: '/textures/door/picture_lamp_lightmap.jpg',
+    picLampAo: '/textures/door/picture_lamp_ao.jpg',
+    tableLampLight: '/textures/door/table_lamp_lightmap.jpg',
+    tableLampAo: '/textures/door/table_lamp_ao.jpg',
+    cofferLight: '/textures/door/ceiling_coffers_lightmap.jpg',
+    cofferAo: '/textures/door/ceiling_coffers_ao.jpg'
   })
 
   useLayoutEffect(() => {
@@ -46,6 +74,26 @@ export function useRoomMaterials() {
     prep(maps.brassMap, { srgb: true, repeat: [2, 2] })
     prep(maps.brassRough, { repeat: [2, 2] })
     prep(maps.brassNormal, { repeat: [2, 2] })
+    ;[
+      maps.floorLight,
+      maps.floorAo,
+      maps.wallLight,
+      maps.wallAo,
+      maps.tableLight,
+      maps.tableAo,
+      maps.stoolLight,
+      maps.stoolAo,
+      maps.bookcaseLight,
+      maps.bookcaseAo,
+      maps.frameLight,
+      maps.frameAo,
+      maps.picLampLight,
+      maps.picLampAo,
+      maps.tableLampLight,
+      maps.tableLampAo,
+      maps.cofferLight,
+      maps.cofferAo
+    ].forEach(prepLight)
   }, [maps])
 
   return useMemo(() => {
@@ -65,6 +113,19 @@ export function useRoomMaterials() {
         metalness: 0.06,
         color: '#cfc3b4'
       }),
+      floorLit: new THREE.MeshStandardMaterial({
+        map: maps.floorMap,
+        roughnessMap: maps.floorRough,
+        normalMap: maps.floorNormal,
+        lightMap: maps.floorLight,
+        aoMap: maps.floorAo,
+        lightMapIntensity: 1.28,
+        aoMapIntensity: 0.88,
+        roughness: 0.22,
+        metalness: 0.08,
+        envMapIntensity: 0.35,
+        color: '#a0907c'
+      }),
       wainscot: new THREE.MeshStandardMaterial({
         map: maps.wallMap,
         roughnessMap: maps.wallRough,
@@ -73,13 +134,34 @@ export function useRoomMaterials() {
         metalness: 0.02,
         color: '#d9cbb8'
       }),
+      wainscotLit: new THREE.MeshStandardMaterial({
+        map: maps.wallMap,
+        roughnessMap: maps.wallRough,
+        normalMap: maps.wallNormal,
+        lightMap: maps.wallLight,
+        aoMap: maps.wallAo,
+        lightMapIntensity: 0.52,
+        aoMapIntensity: 0.82,
+        roughness: 0.68,
+        metalness: 0.02,
+        color: '#9a8a74'
+      }),
       upperWall: new THREE.MeshStandardMaterial({
-        color: '#12110f',
+        color: '#0a0908',
+        roughness: 0.98,
+        metalness: 0
+      }),
+      upperLit: new THREE.MeshStandardMaterial({
+        color: '#0e0d0b',
+        lightMap: maps.wallLight,
+        aoMap: maps.wallAo,
+        lightMapIntensity: 0.26,
+        aoMapIntensity: 0.9,
         roughness: 0.96,
         metalness: 0
       }),
       ceiling: new THREE.MeshStandardMaterial({
-        color: '#0b0a09',
+        color: '#070605',
         roughness: 1,
         metalness: 0
       }),
@@ -117,6 +199,62 @@ export function useRoomMaterials() {
         roughness: 0.68,
         metalness: 0.02
       }),
+      /** Bake1 lit variants — Goal3 intensities / darker bases. */
+      tableLit: new THREE.MeshStandardMaterial({
+        map: furnitureMap,
+        roughnessMap: furnitureRough,
+        normalMap: furnitureNormal,
+        lightMap: maps.tableLight,
+        aoMap: maps.tableAo,
+        lightMapIntensity: 0.78,
+        aoMapIntensity: 0.85,
+        roughness: 0.42,
+        metalness: 0.04,
+        envMapIntensity: 0.4,
+        color: '#9a846e'
+      }),
+      stoolLit: new THREE.MeshStandardMaterial({
+        map: furnitureMap,
+        roughnessMap: furnitureRough,
+        normalMap: furnitureNormal,
+        lightMap: maps.stoolLight,
+        aoMap: maps.stoolAo,
+        lightMapIntensity: 0.72,
+        aoMapIntensity: 0.82,
+        roughness: 0.48,
+        metalness: 0.03,
+        color: '#95806a'
+      }),
+      stoolDarkLit: new THREE.MeshStandardMaterial({
+        color: '#1e140e',
+        lightMap: maps.stoolLight,
+        aoMap: maps.stoolAo,
+        lightMapIntensity: 0.55,
+        aoMapIntensity: 0.88,
+        roughness: 0.7,
+        metalness: 0.02
+      }),
+      bookcaseLit: new THREE.MeshStandardMaterial({
+        map: furnitureMap,
+        roughnessMap: furnitureRough,
+        normalMap: furnitureNormal,
+        lightMap: maps.bookcaseLight,
+        aoMap: maps.bookcaseAo,
+        lightMapIntensity: 0.68,
+        aoMapIntensity: 0.88,
+        roughness: 0.55,
+        metalness: 0.03,
+        color: '#7a6854'
+      }),
+      bookcaseDarkLit: new THREE.MeshStandardMaterial({
+        color: '#160e0a',
+        lightMap: maps.bookcaseLight,
+        aoMap: maps.bookcaseAo,
+        lightMapIntensity: 0.48,
+        aoMapIntensity: 0.92,
+        roughness: 0.72,
+        metalness: 0.02
+      }),
       brass: new THREE.MeshStandardMaterial({
         map: maps.brassMap,
         roughnessMap: maps.brassRough,
@@ -125,6 +263,45 @@ export function useRoomMaterials() {
         roughness: 0.32,
         metalness: 0.9,
         envMapIntensity: 1
+      }),
+      brassFrameLit: new THREE.MeshStandardMaterial({
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        lightMap: maps.frameLight,
+        aoMap: maps.frameAo,
+        lightMapIntensity: 0.62,
+        aoMapIntensity: 0.7,
+        color: '#e0c894',
+        roughness: 0.28,
+        metalness: 0.9,
+        envMapIntensity: 0.55
+      }),
+      brassPicLampLit: new THREE.MeshStandardMaterial({
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        lightMap: maps.picLampLight,
+        aoMap: maps.picLampAo,
+        lightMapIntensity: 0.55,
+        aoMapIntensity: 0.65,
+        color: '#e8d0a0',
+        roughness: 0.28,
+        metalness: 0.9,
+        envMapIntensity: 0.5
+      }),
+      brassTableLampLit: new THREE.MeshStandardMaterial({
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        lightMap: maps.tableLampLight,
+        aoMap: maps.tableLampAo,
+        lightMapIntensity: 0.5,
+        aoMapIntensity: 0.62,
+        color: '#e8d0a0',
+        roughness: 0.3,
+        metalness: 0.9,
+        envMapIntensity: 0.45
       }),
       gold: new THREE.MeshStandardMaterial({
         map: maps.brassMap,
@@ -135,6 +312,19 @@ export function useRoomMaterials() {
         metalness: 0.85,
         envMapIntensity: 1.05
       }),
+      goldLit: new THREE.MeshStandardMaterial({
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        lightMap: maps.frameLight,
+        aoMap: maps.frameAo,
+        lightMapIntensity: 0.65,
+        aoMapIntensity: 0.68,
+        color: '#d4af6a',
+        roughness: 0.26,
+        metalness: 0.88,
+        envMapIntensity: 0.6
+      }),
       goldDark: new THREE.MeshStandardMaterial({
         map: maps.brassMap,
         roughnessMap: maps.brassRough,
@@ -143,18 +333,45 @@ export function useRoomMaterials() {
         roughness: 0.4,
         metalness: 0.78
       }),
+      goldDarkLit: new THREE.MeshStandardMaterial({
+        map: maps.brassMap,
+        roughnessMap: maps.brassRough,
+        normalMap: maps.brassNormal,
+        lightMap: maps.frameLight,
+        aoMap: maps.frameAo,
+        lightMapIntensity: 0.55,
+        aoMapIntensity: 0.72,
+        color: '#8a6a32',
+        roughness: 0.38,
+        metalness: 0.8,
+        envMapIntensity: 0.45
+      }),
+      /** Soft wash read: slight warm emissive so panels stay bright under low fill. */
       canvasWhite: new THREE.MeshStandardMaterial({
-        color: '#f4f1ea',
-        roughness: 0.88,
+        color: '#f6f2e8',
+        emissive: '#ffe8c0',
+        emissiveIntensity: 0.22,
+        roughness: 0.86,
         metalness: 0
       }),
       boardWhite: new THREE.MeshStandardMaterial({
-        color: '#eeeae2',
-        roughness: 0.9,
+        color: '#f2eee4',
+        emissive: '#ffe4b8',
+        emissiveIntensity: 0.2,
+        roughness: 0.88,
         metalness: 0
       }),
       frameWood: new THREE.MeshStandardMaterial({
         color: '#1c140e',
+        roughness: 0.72,
+        metalness: 0.04
+      }),
+      frameWoodLit: new THREE.MeshStandardMaterial({
+        color: '#14100c',
+        lightMap: maps.frameLight,
+        aoMap: maps.frameAo,
+        lightMapIntensity: 0.5,
+        aoMapIntensity: 0.78,
         roughness: 0.72,
         metalness: 0.04
       }),
@@ -165,6 +382,15 @@ export function useRoomMaterials() {
       }),
       lampShadeOuter: new THREE.MeshStandardMaterial({
         color: '#6a4a32',
+        roughness: 0.42,
+        metalness: 0.28
+      }),
+      lampShadeOuterLit: new THREE.MeshStandardMaterial({
+        color: '#6a4a32',
+        lightMap: maps.tableLampLight,
+        aoMap: maps.tableLampAo,
+        lightMapIntensity: 0.48,
+        aoMapIntensity: 0.6,
         roughness: 0.42,
         metalness: 0.28
       }),
@@ -186,6 +412,27 @@ export function useRoomMaterials() {
         emissive: '#ffcc88',
         emissiveIntensity: 1.4,
         roughness: 0.35,
+        metalness: 0
+      }),
+      beamLit: new THREE.MeshStandardMaterial({
+        map: maps.wallMap,
+        roughnessMap: maps.wallRough,
+        normalMap: maps.wallNormal,
+        lightMap: maps.cofferLight,
+        aoMap: maps.cofferAo,
+        lightMapIntensity: 0.42,
+        aoMapIntensity: 0.88,
+        roughness: 0.72,
+        metalness: 0.02,
+        color: '#8a7864'
+      }),
+      ceilingLit: new THREE.MeshStandardMaterial({
+        color: '#0a0908',
+        lightMap: maps.cofferLight,
+        aoMap: maps.cofferAo,
+        lightMapIntensity: 0.28,
+        aoMapIntensity: 0.92,
+        roughness: 1,
         metalness: 0
       })
     }

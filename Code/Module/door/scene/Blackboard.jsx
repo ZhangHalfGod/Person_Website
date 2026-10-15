@@ -1,5 +1,6 @@
 import React from 'react'
 import { HALF_W, BOARD } from './roomLayout.js'
+import FocusHit from './FocusHit.jsx'
 
 export default function Blackboard({ materials }) {
   const { z, y, w, h } = BOARD
@@ -19,6 +20,7 @@ export default function Blackboard({ materials }) {
       <mesh position={[0, h / 2 + 0.12, 0.07]} material={materials.brass}>
         <boxGeometry args={[w * 0.4, 0.022, 0.04]} />
       </mesh>
+      <FocusHit focusId="blackboard" position={[0, 0.06, 0.08]} args={[w + 0.25, h + 0.4, 0.28]} />
     </group>
   )
 }

@@ -1,75 +1,115 @@
 import React, { useLayoutEffect, useMemo, useRef } from 'react'
-import { useGLTF } from '@react-three/drei'
-import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
-import { TABLE, TABLE_LAMP } from './roomLayout.js'
+import { useGLTF, useTexture } from '@react-three/drei'
+import * as THREE from 'three'
+import { cloneGltf } from '@main/scene/gltfShared.js'
+import { TABLE_LAMP } from './roomLayout.js'
 import { flickerFactor, lightBase } from './introTimeline.js'
+import { MAX_PUSH } from './roomCameraStops.js'
 import { useRoomStore } from '../store/roomStore.js'
 import { useIntroTick } from './useIntroTick.js'
+import { lightChannel } from './bakeMaps.js'
 
-const LAMP_URL = '/models/table_lamp.glb'
-const LAMP_TARGET = 9.5
-const LAMP_SCALE = 1.32
-const CORD_LOCAL = [0.048, 0.14, 0]
+/** Poly Haven desk_lamp_arm_01 (CC0) + Bake1 UV2 lightmap/AO. */
+const LAMP_URL = '/models/table_lamp.glb?v=ph-bake1'
+const LAMP_TARGET = 2.4
+const LAMP_SCALE = 1
+const BULB_LOCAL = [0, 0.4, 0.1]
 
-function lampMat(name, materials) {
-  if (/ShadeInner/i.test(name)) return materials.lampShadeInner
-  if (/Rib|Knurl|Disc|Stem|Ferrule|Socket|Cap|Rim|Bead|Base|Step/i.test(name)) {
-    return materials.brass
-  }
-  if (/Shade/i.test(name)) return materials.lampShadeOuter
-  if (/PullCord|Cord/i.test(name)) return materials.lampCord
-  if (/Bulb/i.test(name)) return materials.lampBulb
-  return materials.brass
+function prepBake(tex) {
+  tex.wrapS = THREE.ClampToEdgeWrapping
+  tex.wrapT = THREE.ClampToEdgeWrapping
+  tex.flipY = false
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 4
+  tex.needsUpdate = true
+  return tex
 }
 
-function isPull(name) {
-  return /Pull/i.test(name)
-}
-
-export default function TableLamp({ materials, startedAt }) {
+export default function TableLamp({ startedAt }) {
   const { scene } = useGLTF(LAMP_URL)
-  const clone = useMemo(() => cloneGltf(scene), [scene])
-  const root = useMemo(
-    () => clone.getObjectByName('LampRoot') || clone.getObjectByName('LampRoot.001') || clone,
-    [clone]
-  )
+  const bakeMaps = useTexture({
+    light: '/textures/door/table_lamp_lightmap.jpg',
+    ao: '/textures/door/table_lamp_ao.jpg'
+  })
+  const root = useMemo(() => {
+    const clone = cloneGltf(scene)
+    clone.position.set(0, 0, 0)
+    clone.rotation.set(0, 0, 0)
+    clone.scale.set(1, 1, 1)
+    return clone
+  }, [scene])
   const lightRef = useRef()
-  const bulbRef = useRef()
-  const innerRef = useRef()
+  const emissiveMats = useRef([])
   const toggleTableLamp = useRoomStore((s) => s.toggleTableLamp)
+  const advanceFocus = useRoomStore((s) => s.advanceFocus)
 
   useLayoutEffect(() => {
-    applyNamedMaterials(root, (name) => lampMat(name, materials))
+    prepBake(bakeMaps.light)
+    prepBake(bakeMaps.ao)
+    const mats = []
+    let channel = 2
+    root.traverse((obj) => {
+      if (!obj.isMesh || !obj.geometry) return
+      channel = lightChannel(obj.geometry) || channel
+    })
+    bakeMaps.light.channel = channel
+    bakeMaps.ao.channel = channel
+
     root.traverse((obj) => {
       if (!obj.isMesh) return
-      if (/Bulb/i.test(obj.name)) bulbRef.current = obj
-      if (/ShadeInner|Inner/i.test(obj.name)) innerRef.current = obj
-      if (!isPull(obj.name)) obj.raycast = () => {}
+      obj.castShadow = true
+      obj.receiveShadow = true
+      const list = Array.isArray(obj.material) ? obj.material : [obj.material]
+      for (const mat of list) {
+        if (!mat) continue
+        mat.lightMap = bakeMaps.light
+        mat.aoMap = bakeMaps.ao
+        mat.lightMapIntensity = 0.42
+        mat.aoMapIntensity = 0.58
+        mat.envMapIntensity = 1.1
+        if (mat.map) {
+          mat.map.anisotropy = 8
+          mat.map.needsUpdate = true
+        }
+        if (mat.normalMap) {
+          mat.normalMap.anisotropy = 8
+          mat.normalMap.needsUpdate = true
+        }
+        mat.needsUpdate = true
+        if (mat.emissiveIntensity != null && /light/i.test(mat.name || '')) {
+          mats.push(mat)
+        }
+      }
     })
-  }, [root, materials])
+    emissiveMats.current = mats
+  }, [root, bakeMaps])
 
   useIntroTick(startedAt, (t) => {
     const on = useRoomStore.getState().tableLampOn ? 1 : 0
     const intro = lightBase(t) * flickerFactor(t, 0.72)
     const mul = intro * on
     if (lightRef.current) lightRef.current.intensity = LAMP_TARGET * mul
-    if (bulbRef.current?.material) {
-      bulbRef.current.material.emissiveIntensity = 1.4 * mul
-    }
-    if (innerRef.current?.material) {
-      innerRef.current.material.emissiveIntensity = 0.55 * mul
+    for (const mat of emissiveMats.current) {
+      mat.emissiveIntensity = 1.2 * mul
     }
   })
 
   return (
-    <group position={[TABLE_LAMP.x, TABLE.h, TABLE_LAMP.z]} scale={LAMP_SCALE} userData={{ id: 'table-lamp' }}>
+    <group
+      position={[TABLE_LAMP.x, TABLE_LAMP.y, TABLE_LAMP.z]}
+      rotation={[0, TABLE_LAMP.rotY || 0, 0]}
+      scale={LAMP_SCALE}
+      userData={{ id: 'table-lamp' }}
+    >
       <primitive object={root} />
       <mesh
-        name="PullCordHit"
-        position={CORD_LOCAL}
+        name="LampFocusHit"
+        position={[0, 0.26, 0]}
         onClick={(e) => {
           e.stopPropagation()
-          toggleTableLamp()
+          const s = useRoomStore.getState()
+          if (s.focus === 'lamp' && s.zoom >= MAX_PUSH) toggleTableLamp()
+          else advanceFocus('lamp')
         }}
         onPointerOver={(e) => {
           e.stopPropagation()
@@ -79,12 +119,12 @@ export default function TableLamp({ materials, startedAt }) {
           document.body.style.cursor = 'auto'
         }}
       >
-        <cylinderGeometry args={[0.05, 0.05, 0.32, 8]} />
+        <boxGeometry args={[0.36, 0.62, 0.4]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       <pointLight
         ref={lightRef}
-        position={[0, 0.22, 0]}
+        position={BULB_LOCAL}
         color="#ffb366"
         intensity={0}
         distance={4.6}

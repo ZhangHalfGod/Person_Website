@@ -44,6 +44,7 @@
     <p>细腻外观由本岗位交付模型与 PBR 贴图。前端交互已通，当前是程序化木纹 + box。第一期只做走廊、天花灯、门的材质；门内房间是第二期。</p>
     <nav>
       <a href="材质交付操作.md">材质交付操作（JPG + 瘦 GLB）</a>
+      <a href="工具边界与后续计划.md">工具边界（Houdini / Unity）</a>
       <a href="第一期/任务计划.html">第一期任务</a>
       <a href="第二期/任务计划.html">第二期任务</a>
       <a href="../TA/任务计划.html">TA 任务计划</a>
@@ -77,7 +78,7 @@
 
     <section>
       <h2>工具与输出格式</h2>
-      <p class="lead">制作可用 PNG 或带图的预览 GLB。给前端必须拆图、压 JPG、再导不带贴图的瘦 GLB。完整步骤见 <a href="材质交付操作.md">材质交付操作.md</a>。</p>
+      <p class="lead">制作可用 PNG 或带图的预览 GLB。给前端必须拆图、压 JPG、再导不带贴图的瘦 GLB。完整步骤见 <a href="材质交付操作.md">材质交付操作.md</a>。Houdini / Unity 不是这条链上的下一步，见 <a href="工具边界与后续计划.md">工具边界与后续计划</a>。</p>
       <table>
         <thead>
           <tr><th>工作</th><th>工具</th><th>输出</th></tr>
@@ -92,6 +93,21 @@
             <td>有造型的灯、门扇、线脚</td>
             <td>Blender 建模 + UV</td>
             <td>网页：瘦 <code>.glb</code>（米制、Y-up，<strong>不要内嵌贴图</strong>）。JPG 由前端共用。</td>
+          </tr>
+          <tr>
+            <td>灯塘、门上高光、墙裙明暗</td>
+            <td>Three.js 实时灯 + <code>MeshStandardMaterial</code></td>
+            <td>不另导烘焙贴图。不是 Houdini 灯光，也不是 Unity lightmap。</td>
+          </tr>
+          <tr>
+            <td><span class="tag later">以后</span> 破坏 / 烟尘体积</td>
+            <td>Houdini 模拟后烘焙缓存</td>
+            <td>仅当产品要崩塌、碎玻璃等镜头。不用于把门模再精修一遍。</td>
+          </tr>
+          <tr>
+            <td><span class="tag later">以后</span> 独立 3D 客户端</td>
+            <td>Unity 6 或 Unreal（<strong>禁止 Unity 5</strong>）</td>
+            <td>仅当改成可下载展馆。不与现网 Canvas 混装。</td>
           </tr>
         </tbody>
       </table>

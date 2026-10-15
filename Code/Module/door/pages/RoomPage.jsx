@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect, useLayoutEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
+import * as THREE from 'three'
 import { Navigate, useParams } from 'react-router-dom'
 import rooms from '@main/data/rooms.json'
 import RoomHud from '../overlay/RoomHud.jsx'
@@ -7,7 +8,7 @@ import SiteMenu from '@app/overlay/SiteMenu.jsx'
 import { REQUIRE_CONSOLE } from '@app/config/site.js'
 import { useSessionStore } from '@app/store/sessionStore.js'
 import RoomScene from '../scene/RoomScene.jsx'
-import { CAM_LOOK, CAM_POS } from '../scene/roomLayout.js'
+import { ROOM_VIEW } from '../scene/roomCameraStops.js'
 import { FLICKER_DURATION } from '../scene/introTimeline.js'
 import { ROOM_PHASE, useRoomStore } from '../store/roomStore.js'
 
@@ -53,14 +54,24 @@ export default function RoomPage() {
         key={doorId}
         className="absolute inset-0 h-full w-full"
         shadows
-        dpr={[1, 1.75]}
+        dpr={[1, 2]}
         gl={{ antialias: true, preserveDrawingBuffer: true }}
-        camera={{ fov: 72, near: 0.08, far: 40, position: [0.55, 1.56, -3.38] }}
+        camera={{
+          fov: ROOM_VIEW.fov,
+          near: 0.05,
+          far: 40,
+          position: [...ROOM_VIEW.pos]
+        }}
         onCreated={({ gl, camera }) => {
-          gl.toneMappingExposure = 1.05
+          gl.toneMapping = THREE.ACESFilmicToneMapping
+          // Goal3: slightly underexposed vs Bake1 so LM + soft spots read cinematic.
+          gl.toneMappingExposure = 0.92
           camera.up.set(0, 1, 0)
-          camera.position.set(CAM_POS[0], CAM_POS[1], CAM_POS[2])
-          camera.lookAt(CAM_LOOK[0], CAM_LOOK[1], CAM_LOOK[2])
+          camera.position.set(ROOM_VIEW.pos[0], ROOM_VIEW.pos[1], ROOM_VIEW.pos[2])
+          camera.lookAt(ROOM_VIEW.look[0], ROOM_VIEW.look[1], ROOM_VIEW.look[2])
+        }}
+        onPointerMissed={(e) => {
+          if (e.type === 'click') useRoomStore.getState().retreatFocus()
         }}
       >
         <Suspense fallback={null}>
