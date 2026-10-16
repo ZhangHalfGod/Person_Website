@@ -16,8 +16,18 @@ import {
 
 import { assignLightMaps } from './bakeMaps.js'
 
-const COFFER_URL = '/models/ceiling_coffers.glb?v=bake1'
+const COFFER_URL = '/models/ceiling_coffers.glb?v=c3b'
 const SHELL_URL = '/models/room_shell.glb'
+
+function cofferMaterial(name, materials) {
+  // Emit first — name also contains "Panel"
+  if (/SlotPanelEmit|SlotEmit/i.test(name)) return materials.skySlotEmit
+  // C4 玻璃罩：挡板 + 口沿
+  if (/SlotBaffle|SlotRim/i.test(name)) return materials.slotBaffle
+  // 填心板 / 远排 → 大理石；梁 → 同石材略深
+  if (/Fill|Panel/i.test(name)) return materials.ceilingLit
+  return materials.beamLit
+}
 
 function shellMaterial(name, materials) {
   if (/Floor/i.test(name)) return materials.floorLit
@@ -51,10 +61,16 @@ function CofferedCeiling({ materials }) {
   const root = useMemo(() => clone.getObjectByName('CofferRoot') || clone, [clone])
 
   useLayoutEffect(() => {
+    // Emit / 玻璃罩不挂 LM；仅梁与填心吃 coffer LM（C3b 前强度保守）
     assignLightMaps(root, [materials.ceilingLit, materials.beamLit])
-    applyNamedMaterials(root, (name) =>
-      /Panel/i.test(name) ? materials.ceilingLit : materials.beamLit
-    )
+    applyNamedMaterials(root, (name) => cofferMaterial(name, materials))
+    root.traverse((obj) => {
+      if (!obj.isMesh) return
+      if (/SlotPanelEmit|SlotEmit|SlotBaffle|SlotRim/i.test(obj.name)) {
+        obj.castShadow = false
+        obj.receiveShadow = false
+      }
+    })
   }, [root, materials])
 
   return (

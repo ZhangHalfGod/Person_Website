@@ -16,7 +16,31 @@ dark_wooden_planks  (room floor; corridor copy unused on the website)
            Code/public/textures/Main/floor_*.jpg
            System_doc/3D美术/第一期/corridor_phase1.blend
 
+Marble001  (room coffered ceiling — fill + beams; C3f pure-white veined)
+  source: https://ambientcg.com/a/Marble001
+  license: CC0 1.0
+  used_in: Code/public/textures/door/ceiling_marble_albedo.jpg
+           ceiling_marble_roughness.jpg
+           ceiling_marble_normal.jpg
+           Code/Module/door/scene/useRoomMaterials.js (ceilingLit / beamLit / ceiling)
+  note: albedo lifted + roughness remapped to satin (~0.4–0.55); slot glass/Emit separate
 
+Clarens Midday  (daylight sky HDR — C4 罩内晴空参考；Emit 现用程序/JPG)
+  source: https://polyhaven.com/a/clarens_midday
+  license: CC0 1.0
+  used_in: Code/public/textures/door/clarens_midday_1k.hdr
+           (reference / future env; live Emit map = sky_slot_emit.jpg)
+
+Mounted Fluorescent Lights  (long fixture shape reference — C4 glass cove)
+  source: https://polyhaven.com/a/mounted_fluorescent_lights
+  license: CC0 1.0
+  used_in: shape reference only (not imported mesh); slot geo in ceiling_coffers.glb
+
+Plastic007  (frosted roughness reference for glass cover)
+  source: https://ambientcg.com/a/Plastic007
+  license: CC0 1.0
+  used_in: reference — slotBaffle MeshPhysicalMaterial roughness≈0.34
+           (no separate frost map downloaded; PH glass/frosted catalog has few standalone maps)
 
 Brass knobs / plates / lamp collars / room gold frame
   source: original generated brushed-metal maps (project original)

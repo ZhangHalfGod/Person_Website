@@ -6,7 +6,8 @@ function prepLight(tex) {
   tex.wrapS = THREE.ClampToEdgeWrapping
   tex.wrapT = THREE.ClampToEdgeWrapping
   tex.flipY = false
-  tex.colorSpace = THREE.SRGBColorSpace
+  // C3e：LM/AO 必须 NoColorSpace；SRGB 会压/偏色，掩盖 live 灯塘
+  tex.colorSpace = THREE.NoColorSpace
   tex.anisotropy = 4
   tex.needsUpdate = true
   return tex
@@ -44,8 +45,8 @@ export function useRoomMaterials() {
     brassMap: '/textures/Main/brass_albedo.jpg',
     brassRough: '/textures/Main/brass_roughness.jpg',
     brassNormal: '/textures/Main/brass_normal.jpg',
-    floorLight: '/textures/door/room_floor_lightmap.jpg?v=oc01',
-    floorAo: '/textures/door/room_floor_ao.jpg?v=oc01',
+    floorLight: '/textures/door/room_floor_lightmap.jpg?v=c3b',
+    floorAo: '/textures/door/room_floor_ao.jpg?v=c3b',
     wallLight: '/textures/door/room_wall_lightmap.jpg',
     wallAo: '/textures/door/room_wall_ao.jpg',
     tableLight: '/textures/door/table_lightmap.jpg',
@@ -60,8 +61,12 @@ export function useRoomMaterials() {
     picLampAo: '/textures/door/picture_lamp_ao.jpg',
     tableLampLight: '/textures/door/table_lamp_lightmap.jpg',
     tableLampAo: '/textures/door/table_lamp_ao.jpg',
-    cofferLight: '/textures/door/ceiling_coffers_lightmap.jpg',
-    cofferAo: '/textures/door/ceiling_coffers_ao.jpg'
+    cofferLight: '/textures/door/ceiling_coffers_lightmap.jpg?v=c3b',
+    cofferAo: '/textures/door/ceiling_coffers_ao.jpg?v=c3b',
+    skySlotEmit: '/textures/door/sky_slot_emit.jpg?v=c2sky',
+    marbleMap: '/textures/door/ceiling_marble_albedo.jpg?v=c3f',
+    marbleRough: '/textures/door/ceiling_marble_roughness.jpg?v=c3f',
+    marbleNormal: '/textures/door/ceiling_marble_normal.jpg?v=c3f'
   })
 
   useLayoutEffect(() => {
@@ -74,6 +79,17 @@ export function useRoomMaterials() {
     prep(maps.brassMap, { srgb: true, repeat: [2, 2] })
     prep(maps.brassRough, { repeat: [2, 2] })
     prep(maps.brassNormal, { repeat: [2, 2] })
+    // C3f 纯白大理石 — 略密 repeat，尺度贴合填心/梁；勿动 UV2
+    prep(maps.marbleMap, { srgb: true, repeat: [2.6, 3.2] })
+    prep(maps.marbleRough, { repeat: [2.6, 3.2] })
+    prep(maps.marbleNormal, { repeat: [2.6, 3.2] })
+    // C2 sky strip: clamp, no tiling; sRGB for albedo/emissive map
+    maps.skySlotEmit.wrapS = THREE.ClampToEdgeWrapping
+    maps.skySlotEmit.wrapT = THREE.ClampToEdgeWrapping
+    maps.skySlotEmit.flipY = false
+    maps.skySlotEmit.colorSpace = THREE.SRGBColorSpace
+    maps.skySlotEmit.anisotropy = 4
+    maps.skySlotEmit.needsUpdate = true
     ;[
       maps.floorLight,
       maps.floorAo,
@@ -161,10 +177,18 @@ export function useRoomMaterials() {
         roughness: 0.96,
         metalness: 0
       }),
-      ceiling: new THREE.MeshStandardMaterial({
-        color: '#070605',
+      /** Backdrop plane above coffers — C3f 纯白大理石，无 LM */
+      ceiling: new THREE.MeshPhysicalMaterial({
+        map: maps.marbleMap,
+        roughnessMap: maps.marbleRough,
+        normalMap: maps.marbleNormal,
+        color: '#faf9f7',
         roughness: 1,
-        metalness: 0
+        metalness: 0,
+        clearcoat: 0.08,
+        clearcoatRoughness: 0.45,
+        envMapIntensity: 0.22,
+        normalScale: new THREE.Vector2(0.45, 0.45)
       }),
       beam: new THREE.MeshStandardMaterial({
         map: maps.wallMap,
@@ -442,26 +466,83 @@ export function useRoomMaterials() {
         roughness: 0.35,
         metalness: 0
       }),
-      beamLit: new THREE.MeshStandardMaterial({
-        map: maps.wallMap,
-        roughnessMap: maps.wallRough,
-        normalMap: maps.wallNormal,
+      /**
+       * C3f 天花纯白大理石（梁）— albedo 近白 + 细纹；satin roughness；保留 coffer LM/AO。
+       */
+      beamLit: new THREE.MeshPhysicalMaterial({
+        map: maps.marbleMap,
+        roughnessMap: maps.marbleRough,
+        normalMap: maps.marbleNormal,
         lightMap: maps.cofferLight,
         aoMap: maps.cofferAo,
         lightMapIntensity: 0.42,
-        aoMapIntensity: 0.88,
-        roughness: 0.72,
-        metalness: 0.02,
-        color: '#8a7864'
+        aoMapIntensity: 0.78,
+        color: '#f5f4f1',
+        // roughness×map：map≈0.39–0.57 → 有效 satin；factor=1 避免再压暗
+        roughness: 1,
+        metalness: 0,
+        clearcoat: 0.06,
+        clearcoatRoughness: 0.5,
+        envMapIntensity: 0.2,
+        normalScale: new THREE.Vector2(0.55, 0.55)
       }),
-      ceilingLit: new THREE.MeshStandardMaterial({
-        color: '#0a0908',
+      /**
+       * C3f 天花纯白大理石（填心板 / 远排 Panel）— 同石材略亮；保留 coffer LM/AO。
+       */
+      ceilingLit: new THREE.MeshPhysicalMaterial({
+        map: maps.marbleMap,
+        roughnessMap: maps.marbleRough,
+        normalMap: maps.marbleNormal,
         lightMap: maps.cofferLight,
         aoMap: maps.cofferAo,
-        lightMapIntensity: 0.28,
-        aoMapIntensity: 0.92,
+        lightMapIntensity: 0.38,
+        aoMapIntensity: 0.75,
+        color: '#faf9f7',
         roughness: 1,
-        metalness: 0
+        metalness: 0,
+        clearcoat: 0.08,
+        clearcoatRoughness: 0.48,
+        envMapIntensity: 0.22,
+        normalScale: new THREE.Vector2(0.5, 0.5)
+      }),
+      /**
+       * C4/C3c 罩内晴空 Emit — 淡蓝软云；无 lightMap。
+       * FlickerLights 稳态把 emissiveIntensity 拉到 ≈1.2–1.8；toneMapped:false 保天光可读。
+       */
+      skySlotEmit: new THREE.MeshStandardMaterial({
+        map: maps.skySlotEmit,
+        emissiveMap: maps.skySlotEmit,
+        emissive: '#d8e6f2',
+        emissiveIntensity: 1.4,
+        color: '#c5d6e6',
+        roughness: 1,
+        metalness: 0,
+        lightMapIntensity: 0,
+        toneMapped: false,
+        side: THREE.DoubleSide
+      }),
+      /**
+       * C4 半透明玻璃罩（Baffle/Rim）— transmission + 磨砂 roughness。
+       * 无 IBL 时靠浅色 + 弱 emissive 避免「黑柱」；勿暗金属。
+       * 磨砂参考 ambientCG Plastic007；外形参考 PH mounted_fluorescent_lights。
+       */
+      slotBaffle: new THREE.MeshPhysicalMaterial({
+        color: '#e8f1f8',
+        roughness: 0.34,
+        metalness: 0,
+        transmission: 0.62,
+        thickness: 0.05,
+        ior: 1.45,
+        transparent: true,
+        opacity: 1,
+        attenuationColor: '#c5d8ec',
+        attenuationDistance: 0.35,
+        emissive: '#c8d8e8',
+        emissiveIntensity: 0.12,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        lightMapIntensity: 0,
+        envMapIntensity: 0.15
       })
     }
   }, [maps])

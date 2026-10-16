@@ -64,8 +64,8 @@ export default function RoomPage() {
         }}
         onCreated={({ gl, camera }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping
-          // Goal3: slightly underexposed vs Bake1 so LM + soft spots read cinematic.
-          gl.toneMappingExposure = 0.92
+          // C3d：0.92→1.0 验证四槽地板灯塘可读（仍无 hemi）
+          gl.toneMappingExposure = 1.0
           camera.up.set(0, 1, 0)
           camera.position.set(ROOM_VIEW.pos[0], ROOM_VIEW.pos[1], ROOM_VIEW.pos[2])
           camera.lookAt(ROOM_VIEW.look[0], ROOM_VIEW.look[1], ROOM_VIEW.look[2])

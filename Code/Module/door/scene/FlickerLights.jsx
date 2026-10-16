@@ -1,22 +1,26 @@
-import React, { useLayoutEffect, useMemo, useRef } from 'react'
-import * as THREE from 'three' // LatheGeometry / Vector2
+import React, { useLayoutEffect, useRef } from 'react'
+import * as THREE from 'three'
+import { useHelper } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import { HALF_W, PAINTING, BOARD, ROOM_H } from './roomLayout.js'
 import { FLICKER_DURATION, flickerFactor, lightBase } from './introTimeline.js'
 import { ROOM_PHASE, useRoomStore } from '../store/roomStore.js'
 import { useIntroTick } from './useIntroTick.js'
 
 /**
- * Goal3 lighting:
- * - Ceiling: PointLights (stable residual low) + floor lightMap for soft pools
- * - Picture/board: SpotLights with high penumbra for soft wash
- * - No gray hemi/dir fill (see RoomScene)
+ * C4 + C3c–C3e：四槽主照（Spot + Point 补光）；无锥灯 CEILING / FanPendant。
+ * C3e：强度在子组件 useFrame 直写，避免 intensity={0} 被 React 重渲染盖掉。
  */
-const CEILING = [
-  { pos: [0.05, ROOM_H - 0.22, 0.15], peak: 22, stable: 15, dist: 9.5, phase: 0.2, shadow: true },
-  { pos: [0.1, ROOM_H - 0.28, 1.85], peak: 16, stable: 11.5, dist: 8.5, phase: 1.4, shadow: false },
-  // Soft mid fill — table/floor readable without cool gray hemi
-  { pos: [0.08, ROOM_H - 0.55, 1.0], peak: 7, stable: 4.2, dist: 7.5, phase: 0.8, shadow: false }
+const SLOT_LIGHTS = [
+  { pos: [-1.1, ROOM_H - 0.06, 1.7], peak: 92, stable: 72, dist: 9.5, angle: 0.78, penumbra: 0.58, phase: 0.2, pointStable: 16, pointPeak: 22 },
+  { pos: [1.1, ROOM_H - 0.06, 1.7], peak: 88, stable: 68, dist: 9.2, angle: 0.78, penumbra: 0.6, phase: 0.7, pointStable: 15, pointPeak: 20 },
+  { pos: [-1.1, ROOM_H - 0.06, -0.1], peak: 90, stable: 70, dist: 9.5, angle: 0.8, penumbra: 0.6, phase: 1.3, pointStable: 16, pointPeak: 21 },
+  { pos: [1.1, ROOM_H - 0.06, -0.1], peak: 84, stable: 64, dist: 9.2, angle: 0.8, penumbra: 0.62, phase: 1.9, pointStable: 14, pointPeak: 19 }
 ]
+
+/** DEV：锥体 helper 默认关；控制台 `window.__slotLightHelpers = true` 后刷新可开 */
+const SHOW_SLOT_HELPERS =
+  import.meta.env.DEV && typeof window !== 'undefined' && window.__slotLightHelpers === true
 
 const WASH = [
   {
@@ -42,69 +46,112 @@ const WASH = [
 ]
 
 const BAKE_FULL = {
-  // OC-01 dual-ellipse rebake — slightly lower to limit live+LM double-count
-  floorLit: 1.18,
-  wainscotLit: 0.58,
-  upperLit: 0.3,
-  tableLit: 0.85,
-  stoolLit: 0.78,
-  stoolDarkLit: 0.6,
-  // OC-03: shelves a bit more open; books stay darker (accent lights add spine read)
-  bookcaseLit: 0.72,
-  bookcaseDarkLit: 0.38,
-  bookcaseBookMid: 0.42,
-  bookcaseBookDeep: 0.32,
-  brassFrameLit: 0.68,
-  brassPicLampLit: 0.6,
-  brassTableLampLit: 0.55,
-  goldLit: 0.7,
-  goldDarkLit: 0.6,
-  frameWoodLit: 0.55,
-  lampShadeOuterLit: 0.52,
-  beamLit: 0.48,
-  ceilingLit: 0.32
+  // C3e 验证：压低地板 LM，露出 live 槽光灯塘（不重烤）
+  floorLit: 0.2,
+  wainscotLit: 0.5,
+  upperLit: 0.26,
+  tableLit: 0.72,
+  stoolLit: 0.68,
+  stoolDarkLit: 0.52,
+  bookcaseLit: 0.65,
+  bookcaseDarkLit: 0.34,
+  bookcaseBookMid: 0.38,
+  bookcaseBookDeep: 0.28,
+  brassFrameLit: 0.62,
+  brassPicLampLit: 0.55,
+  brassTableLampLit: 0.5,
+  goldLit: 0.64,
+  goldDarkLit: 0.55,
+  frameWoodLit: 0.5,
+  lampShadeOuterLit: 0.48,
+  beamLit: 0.4,
+  ceilingLit: 0.36
 }
 const BAKE_UNDER = 0.2
 const LIT_KEYS = Object.keys(BAKE_FULL)
 
-function fanShadeGeometry() {
-  const pts = []
-  for (let i = 0; i <= 12; i += 1) {
-    const t = i / 12
-    const y = -0.02 + t * 0.13
-    const radius = 0.108 * (1 - t) ** 0.85 + 0.028
-    pts.push(new THREE.Vector2(radius, y))
-  }
-  return new THREE.LatheGeometry(pts, 36)
-}
+/** 父级每 tick 写入；子组件 useFrame 读出并落到 Three 对象 */
+function SlotDownSpot({ lamp, index, spotIRef, pointIRef }) {
+  const spotRef = useRef(null)
+  const pointRef = useRef(null)
+  const targetRef = useRef(null)
+  const logAcc = useRef(0)
 
-function FanPendant({ position }) {
-  const shade = useMemo(() => fanShadeGeometry(), [])
+  useHelper(SHOW_SLOT_HELPERS ? spotRef : null, THREE.SpotLightHelper, '#7ec8ff')
+
+  useLayoutEffect(() => {
+    const spot = spotRef.current
+    const target = targetRef.current
+    if (!spot || !target) return
+    spot.target = target
+    target.position.set(lamp.pos[0], 0.05, lamp.pos[2])
+    target.updateMatrixWorld(true)
+    // 默认先落到 stable，避免首帧黑
+    spot.intensity = lamp.stable
+    if (pointRef.current) pointRef.current.intensity = lamp.pointStable
+  }, [lamp])
+
+  useFrame((_, dt) => {
+    const spot = spotRef.current
+    const point = pointRef.current
+    const target = targetRef.current
+    if (!spot || !target) return
+
+    target.position.set(lamp.pos[0], 0.05, lamp.pos[2])
+    if (spot.target !== target) spot.target = target
+    target.updateMatrixWorld(true)
+
+    // C3e：强度只在这里写本地 ref，不被 JSX intensity={0} 盖掉
+    const si = spotIRef.current[index]
+    const pi = pointIRef.current[index]
+    if (typeof si === 'number') spot.intensity = si
+    if (point && typeof pi === 'number') point.intensity = pi
+
+    if (import.meta.env.DEV) {
+      logAcc.current += dt
+      if (logAcc.current > 1.5 && index === 0) {
+        logAcc.current = 0
+        const vals = SLOT_LIGHTS.map((_, i) => {
+          const s = spotIRef.current[i]
+          return typeof s === 'number' ? s.toFixed(1) : '?'
+        })
+        // eslint-disable-next-line no-console
+        console.debug('[C3e slot intensity]', vals.join(', '), 'spot0=', spot.intensity.toFixed(1), 'point0=', point?.intensity?.toFixed(1))
+        if (typeof window !== 'undefined') {
+          window.__slotSpotI = vals
+          window.__slotPointI = SLOT_LIGHTS.map((_, i) => {
+            const p = pointIRef.current[i]
+            return typeof p === 'number' ? p.toFixed(1) : '?'
+          })
+        }
+      }
+    }
+  })
+
   return (
-    <group position={position}>
-      <mesh position={[0, 0.14, 0]}>
-        <cylinderGeometry args={[0.008, 0.008, 0.2, 8]} />
-        <meshStandardMaterial color="#1a1410" roughness={0.8} />
-      </mesh>
-      <mesh geometry={shade} position={[0, -0.02, 0]}>
-        <meshStandardMaterial
-          color="#3a2a18"
-          roughness={0.48}
-          metalness={0.22}
-          emissive="#ffb366"
-          emissiveIntensity={0.3}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      {Array.from({ length: 8 }, (_, i) => {
-        const a = (i / 8) * Math.PI * 2
-        return (
-          <mesh key={i} position={[Math.cos(a) * 0.058, 0.035, Math.sin(a) * 0.058]} rotation={[0, -a, 0]}>
-            <boxGeometry args={[0.006, 0.09, 0.014]} />
-            <meshStandardMaterial color="#2a2118" roughness={0.42} metalness={0.35} />
-          </mesh>
-        )
-      })}
+    <group>
+      <object3D ref={targetRef} position={[lamp.pos[0], 0.05, lamp.pos[2]]} />
+      <spotLight
+        ref={spotRef}
+        position={lamp.pos}
+        color="#e4eef8"
+        intensity={lamp.stable}
+        distance={lamp.dist}
+        decay={1.5}
+        angle={lamp.angle}
+        penumbra={lamp.penumbra}
+        castShadow={false}
+      />
+      {/* C3e A/B：同槽 Point 补光；Point 出塘而 Spot 无 → 保留 Point */}
+      <pointLight
+        ref={pointRef}
+        position={lamp.pos}
+        color="#e4eef8"
+        intensity={lamp.pointStable}
+        distance={8}
+        decay={2}
+        castShadow={false}
+      />
     </group>
   )
 }
@@ -133,7 +180,7 @@ function WashSpot({ lamp, index, lightRefs, targetRefs }) {
         }}
         position={lamp.pos}
         color="#ffc27a"
-        intensity={0}
+        intensity={lamp.stable}
         distance={lamp.dist}
         decay={2}
         angle={lamp.angle}
@@ -144,7 +191,8 @@ function WashSpot({ lamp, index, lightRefs, targetRefs }) {
 }
 
 export default function FlickerLights({ startedAt, materials }) {
-  const ceilRefs = useRef([])
+  const spotIRef = useRef(SLOT_LIGHTS.map((l) => l.stable))
+  const pointIRef = useRef(SLOT_LIGHTS.map((l) => l.pointStable))
   const washRefs = useRef([])
   const washTargets = useRef([])
   const ambientRef = useRef()
@@ -155,12 +203,15 @@ export default function FlickerLights({ startedAt, materials }) {
   useIntroTick(startedAt, (t) => {
     const base = lightBase(t)
     const settle = Math.min(1, Math.max(0, (t - (FLICKER_DURATION - 2.2)) / 2.2))
-    CEILING.forEach((lamp, i) => {
-      const light = ceilRefs.current[i]
-      if (!light) return
+
+    SLOT_LIGHTS.forEach((lamp, i) => {
       const live = lamp.peak + (lamp.stable - lamp.peak) * settle
-      light.intensity = live * base * flickerFactor(t, lamp.phase)
+      const mul = base * (0.75 + 0.25 * flickerFactor(t, lamp.phase))
+      spotIRef.current[i] = live * mul
+      const pLive = lamp.pointPeak + (lamp.pointStable - lamp.pointPeak) * settle
+      pointIRef.current[i] = pLive * mul
     })
+
     WASH.forEach((lamp, i) => {
       const light = washRefs.current[i]
       const target = washTargets.current[i]
@@ -170,8 +221,9 @@ export default function FlickerLights({ startedAt, materials }) {
       const live = lamp.peak + (lamp.stable - lamp.peak) * settle
       light.intensity = live * base * flickerFactor(t, lamp.phase)
     })
+
     if (ambientRef.current) {
-      ambientRef.current.intensity = 0.012 + 0.035 * base
+      ambientRef.current.intensity = 0.025 + 0.08 * settle * base
     }
     if (materials) {
       const mix = BAKE_UNDER + (1 - BAKE_UNDER) * settle
@@ -179,6 +231,9 @@ export default function FlickerLights({ startedAt, materials }) {
         const mat = materials[key]
         if (mat) mat.lightMapIntensity = (BAKE_FULL[key] || 0.7) * mix
       })
+      if (materials.skySlotEmit) {
+        materials.skySlotEmit.emissiveIntensity = 0.5 + 1.2 * settle * base
+      }
     }
     if (!flickerSent.current && t > 0.04) {
       flickerSent.current = true
@@ -192,25 +247,9 @@ export default function FlickerLights({ startedAt, materials }) {
 
   return (
     <group>
-      <ambientLight ref={ambientRef} intensity={0.012} color="#1c140e" />
-      <FanPendant position={[0.05, ROOM_H - 0.18, 0.15]} />
-      <FanPendant position={[0.1, ROOM_H - 0.18, 1.85]} />
-      {CEILING.map((lamp, i) => (
-        <pointLight
-          key={`c${i}`}
-          ref={(el) => {
-            ceilRefs.current[i] = el
-          }}
-          position={lamp.pos}
-          color={i === 2 ? '#ff9a55' : '#ffb366'}
-          intensity={0}
-          distance={lamp.dist}
-          decay={2}
-          castShadow={lamp.shadow}
-          shadow-mapSize-width={512}
-          shadow-mapSize-height={512}
-          shadow-bias={-0.012}
-        />
+      <ambientLight ref={ambientRef} intensity={0.025} color="#1c1814" />
+      {SLOT_LIGHTS.map((lamp, i) => (
+        <SlotDownSpot key={`slot${i}`} lamp={lamp} index={i} spotIRef={spotIRef} pointIRef={pointIRef} />
       ))}
       {WASH.map((lamp, i) => (
         <WashSpot key={`w${i}`} lamp={lamp} index={i} lightRefs={washRefs} targetRefs={washTargets} />
