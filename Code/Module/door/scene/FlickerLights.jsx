@@ -42,15 +42,18 @@ const WASH = [
 ]
 
 const BAKE_FULL = {
-  // G3-03 rebake: stronger pools — intensity down to limit live+LM double-count
-  floorLit: 1.28,
+  // OC-01 dual-ellipse rebake — slightly lower to limit live+LM double-count
+  floorLit: 1.18,
   wainscotLit: 0.58,
   upperLit: 0.3,
   tableLit: 0.85,
   stoolLit: 0.78,
   stoolDarkLit: 0.6,
-  bookcaseLit: 0.75,
-  bookcaseDarkLit: 0.52,
+  // OC-03: shelves a bit more open; books stay darker (accent lights add spine read)
+  bookcaseLit: 0.72,
+  bookcaseDarkLit: 0.38,
+  bookcaseBookMid: 0.42,
+  bookcaseBookDeep: 0.32,
   brassFrameLit: 0.68,
   brassPicLampLit: 0.6,
   brassTableLampLit: 0.55,

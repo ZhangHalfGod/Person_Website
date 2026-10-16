@@ -30,7 +30,7 @@ const LAMP_Z = TABLE_LAMP.z
  * Per-focus shots indexed by push level 1..3.
  * 1 = stand beside / approach
  * 2 = face-to-face
- * 3 = detail close-up
+ * 3 = detail close-up (non-painting only; painting 3rd push → M4 jump)
  */
 export const FOCUS_VIEWS = {
   painting: {
@@ -43,12 +43,8 @@ export const FOCUS_VIEWS = {
       pos: [PAINT_X - 1.35, PAINT_Y, PAINT_Z],
       look: [PAINT_X, PAINT_Y, PAINT_Z],
       fov: 48
-    },
-    3: {
-      pos: [PAINT_X - 0.72, PAINT_Y + 0.02, PAINT_Z],
-      look: [PAINT_X, PAINT_Y, PAINT_Z],
-      fov: 40
     }
+    // no [3]: M4 leaves room via openMechAssistConsole()
   },
   /** Right-wall board (screen-right / world -X). */
   blackboard: {

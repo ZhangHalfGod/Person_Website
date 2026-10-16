@@ -36,6 +36,19 @@ function RoomCamera() {
   }, [gl, retreatFocus])
 
   useFrame((_, dt) => {
+    // DEV / B1-11: window.__shotCam = { pos, look, fov } snaps camera for stills
+    const shot = typeof window !== 'undefined' ? window.__shotCam : null
+    if (shot?.pos && shot?.look) {
+      camera.position.set(shot.pos[0], shot.pos[1], shot.pos[2])
+      look.current.set(shot.look[0], shot.look[1], shot.look[2])
+      camera.up.set(0, 1, 0)
+      camera.lookAt(look.current)
+      if (typeof shot.fov === 'number') {
+        camera.fov = shot.fov
+        camera.updateProjectionMatrix()
+      }
+      return
+    }
     const stop = getCameraStop(focus, zoom)
     targetPos.current.set(stop.pos[0], stop.pos[1], stop.pos[2])
     targetLook.current.set(stop.look[0], stop.look[1], stop.look[2])

@@ -178,7 +178,7 @@ GLB（瘦，含 UV2）仍落现有 models 约定目录（如 `Code/public/models
 | 目标静帧 | `System_doc/door_Page/room-interior-v1.png` |
 | 入场时序 | `System_doc/door_Page/入场交互时序.md` |
 | 工具边界 | `System_doc/3D美术/工具边界与制作计划.md` |
-| 本方案 | `System_doc/3D美术/第二期/Blender烘焙进网页方案.md` |
+| 本方案 | `System_doc/3D美术/第二期/文档/Blender烘焙进网页方案.md` |
 | 三线对比 | `System_doc/3D美术/光影质量路线对比.html` |
 
 改 GLB / 贴图名时：只改 door 模块引用，走廊资产不动。

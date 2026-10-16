@@ -8,6 +8,18 @@ export const CONSOLE_HOME = '/console/'
 
 export const CONSOLE_LOGIN = '/login'
 
+/**
+ * Left-wall painting iframe (M2) + M4 jump target.
+ * Override with VITE_MECHASSIST_EMBED_URL. Never put credentials here.
+ */
+export const MECHASSIST_EMBED_URL =
+  import.meta.env.VITE_MECHASSIST_EMBED_URL || 'http://8.163.18.183/console/'
+
+/** M4: same-frame 3rd advance → full-page leave room for Console. */
+export function openMechAssistConsole() {
+  window.location.assign(MECHASSIST_EMBED_URL)
+}
+
 export const DOCS_URL = '/agents-skill/'
 
 export const REQUIRE_CONSOLE = import.meta.env.VITE_REQUIRE_CONSOLE === 'true'

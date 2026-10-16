@@ -44,8 +44,8 @@ export function useRoomMaterials() {
     brassMap: '/textures/Main/brass_albedo.jpg',
     brassRough: '/textures/Main/brass_roughness.jpg',
     brassNormal: '/textures/Main/brass_normal.jpg',
-    floorLight: '/textures/door/room_floor_lightmap.jpg?v=g3-floor',
-    floorAo: '/textures/door/room_floor_ao.jpg?v=g3-floor',
+    floorLight: '/textures/door/room_floor_lightmap.jpg?v=oc01',
+    floorAo: '/textures/door/room_floor_ao.jpg?v=oc01',
     wallLight: '/textures/door/room_wall_lightmap.jpg',
     wallAo: '/textures/door/room_wall_ao.jpg',
     tableLight: '/textures/door/table_lightmap.jpg',
@@ -119,11 +119,12 @@ export function useRoomMaterials() {
         normalMap: maps.floorNormal,
         lightMap: maps.floorLight,
         aoMap: maps.floorAo,
-        lightMapIntensity: 1.28,
+        lightMapIntensity: 1.18,
         aoMapIntensity: 0.88,
-        roughness: 0.22,
+        // OC-03: slight satin plank sheen (no IBL fill)
+        roughness: 0.18,
         metalness: 0.08,
-        envMapIntensity: 0.35,
+        envMapIntensity: 0.28,
         color: '#a0907c'
       }),
       wainscot: new THREE.MeshStandardMaterial({
@@ -199,8 +200,11 @@ export function useRoomMaterials() {
         roughness: 0.68,
         metalness: 0.02
       }),
-      /** Bake1 lit variants — Goal3 intensities / darker bases. */
-      tableLit: new THREE.MeshStandardMaterial({
+      /**
+       * OC-03 satin tabletop — MeshPhysical clearcoat (weak).
+       * No room IBL; sheen mostly from live lamps + clearcoat.
+       */
+      tableLit: new THREE.MeshPhysicalMaterial({
         map: furnitureMap,
         roughnessMap: furnitureRough,
         normalMap: furnitureNormal,
@@ -208,12 +212,14 @@ export function useRoomMaterials() {
         aoMap: maps.tableAo,
         lightMapIntensity: 0.78,
         aoMapIntensity: 0.85,
-        roughness: 0.42,
-        metalness: 0.04,
-        envMapIntensity: 0.4,
+        roughness: 0.3,
+        metalness: 0.05,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.38,
+        envMapIntensity: 0.35,
         color: '#9a846e'
       }),
-      stoolLit: new THREE.MeshStandardMaterial({
+      stoolLit: new THREE.MeshPhysicalMaterial({
         map: furnitureMap,
         roughnessMap: furnitureRough,
         normalMap: furnitureNormal,
@@ -221,8 +227,11 @@ export function useRoomMaterials() {
         aoMap: maps.stoolAo,
         lightMapIntensity: 0.72,
         aoMapIntensity: 0.82,
-        roughness: 0.48,
+        roughness: 0.36,
         metalness: 0.03,
+        clearcoat: 0.12,
+        clearcoatRoughness: 0.45,
+        envMapIntensity: 0.28,
         color: '#95806a'
       }),
       stoolDarkLit: new THREE.MeshStandardMaterial({
@@ -234,25 +243,44 @@ export function useRoomMaterials() {
         roughness: 0.7,
         metalness: 0.02
       }),
+      /** OC-03: shelves slightly more open; books darker/varied for spine depth. */
       bookcaseLit: new THREE.MeshStandardMaterial({
         map: furnitureMap,
         roughnessMap: furnitureRough,
         normalMap: furnitureNormal,
         lightMap: maps.bookcaseLight,
         aoMap: maps.bookcaseAo,
-        lightMapIntensity: 0.68,
-        aoMapIntensity: 0.88,
-        roughness: 0.55,
+        lightMapIntensity: 0.72,
+        aoMapIntensity: 0.95,
+        roughness: 0.58,
         metalness: 0.03,
-        color: '#7a6854'
+        color: '#8a7460'
       }),
       bookcaseDarkLit: new THREE.MeshStandardMaterial({
-        color: '#160e0a',
+        color: '#1a100c',
         lightMap: maps.bookcaseLight,
         aoMap: maps.bookcaseAo,
-        lightMapIntensity: 0.48,
-        aoMapIntensity: 0.92,
-        roughness: 0.72,
+        lightMapIntensity: 0.38,
+        aoMapIntensity: 1.05,
+        roughness: 0.78,
+        metalness: 0.02
+      }),
+      bookcaseBookMid: new THREE.MeshStandardMaterial({
+        color: '#2a1810',
+        lightMap: maps.bookcaseLight,
+        aoMap: maps.bookcaseAo,
+        lightMapIntensity: 0.42,
+        aoMapIntensity: 1.0,
+        roughness: 0.74,
+        metalness: 0.02
+      }),
+      bookcaseBookDeep: new THREE.MeshStandardMaterial({
+        color: '#0e0a08',
+        lightMap: maps.bookcaseLight,
+        aoMap: maps.bookcaseAo,
+        lightMapIntensity: 0.32,
+        aoMapIntensity: 1.1,
+        roughness: 0.82,
         metalness: 0.02
       }),
       brass: new THREE.MeshStandardMaterial({

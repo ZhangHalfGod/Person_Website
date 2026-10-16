@@ -1,16 +1,19 @@
 import React, { useLayoutEffect, useMemo } from 'react'
+import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { applyNamedMaterials, cloneGltf } from '@main/scene/gltfShared.js'
 import { HALF_W, PAINTING } from './roomLayout.js'
 import FocusHit from './FocusHit.jsx'
+import PaintingEmbed from './PaintingEmbed.jsx'
 import { assignLightMaps } from './bakeMaps.js'
 
-const FRAME_URL = '/models/picture_frame.glb?v=bake1'
+const FRAME_URL = '/models/picture_frame.glb?v=oc02c'
 const LAMP_URL = '/models/picture_lamp.glb?v=bake1'
 
 function frameMat(name, materials) {
-  if (/Inner/i.test(name)) return materials.frameWoodLit
-  if (/Outer|Corner/i.test(name)) return materials.goldDarkLit
+  // Rim moldings only; canvas is a separate white plane in the opening.
+  if (/Inner|Lip/i.test(name)) return materials.frameWoodLit
+  if (/Outer|Corner|Leaf|Crest|Roundel/i.test(name)) return materials.goldDarkLit
   return materials.goldLit
 }
 
@@ -26,6 +29,12 @@ export default function Painting({ materials }) {
     () => lamp.getObjectByName('PictureLampRoot') || lamp.getObjectByName('LampRoot') || lamp,
     [lamp]
   )
+  const canvasMat = useMemo(() => {
+    const m = materials.canvasWhite.clone()
+    m.side = THREE.DoubleSide
+    m.depthWrite = true
+    return m
+  }, [materials.canvasWhite])
 
   useLayoutEffect(() => {
     assignLightMaps(frameRoot, [
@@ -42,12 +51,26 @@ export default function Painting({ materials }) {
   return (
     <group position={[x, y, z]} rotation={[0, Math.PI / 2, 0]} userData={{ id: 'painting' }}>
       <primitive object={frameRoot} />
-      <mesh position={[0, 0, -0.055]} rotation={[0, Math.PI, 0]} material={materials.canvasWhite}>
+      {/*
+        Parent yaw = π/2: local −Z faces into the room (−X).
+        Frame depth was Blender +Y → glTF −Z; lip front ≈ −0.06.
+        Canvas / embed sit on the room side (negative Z), not into the wall (+Z).
+      */}
+      {/* Fallback plate behind iframe (loads / blocked); slightly deeper than Html. */}
+      <mesh position={[0, 0, -0.066]} rotation={[0, Math.PI, 0]} material={canvasMat} renderOrder={1}>
         <planeGeometry args={[w, h]} />
       </mesh>
+      {/* M2: iframe aligned to opening UV (PAINTING.w×h). FocusHit rim still advances camera. */}
+      <PaintingEmbed
+        width={w}
+        height={h}
+        position={[0, 0, -0.07]}
+        rotation={[0, Math.PI, 0]}
+      />
       <group position={[0, h / 2 + 0.14, 0.02]}>
         <primitive object={lampRoot} />
       </group>
+      {/* Hit volume larger than opening → rim clicks push-in; opening DOM keeps iframe scroll/click. */}
       <FocusHit focusId="painting" position={[0, 0, 0.04]} args={[w + 0.2, h + 0.35, 0.22]} />
     </group>
   )

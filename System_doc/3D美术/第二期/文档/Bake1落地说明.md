@@ -2,7 +2,6 @@
 
 > 对照 xlsx「目标二_Bake1家具」。主项已落地；**未宣称对齐 room-interior-v1**。  
 > 若表状态未自动勾选（xlsx 被 Excel 占用会 PermissionError），先关闭该表再跑：  
-> `python System_doc/3D美术/第二期/_mark_bake1_xlsx.py`  
 > 建议勾：B1-01～B1-10「已完成」；B1-11 验收截图目录保持未做。
 
 ## 任务状态建议
@@ -15,7 +14,7 @@
 ## 产出路径
 
 ### 脚本
-- `System_doc/3D美术/第二期/_bake1_furniture.py`
+- `System_doc/3D美术/第二期/脚本/_bake1_furniture.py`
 
 ### 贴图 `Code/public/textures/door/`
 - `table_lightmap.jpg` / `table_ao.jpg`（1024）

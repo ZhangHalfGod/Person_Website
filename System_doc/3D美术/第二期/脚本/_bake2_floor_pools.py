@@ -1,13 +1,11 @@
-# Bake2 / G3-03: local rebake of floor lightmap (+ AO) only.
-# Stronger ceiling spots → cleaner elliptical soft pools; higher samples + denoise.
-# Does NOT rebake walls or furniture. Run inside open room_phase2.blend
-# or: blender room_phase2.blend --background --python this_script.py
+# OC-01 / Bake2: local rebake of floor lightmap (+ AO) only.
+# Narrower soft spots → two separated elliptical pools (vs merged blob).
+# Does NOT rebake walls or furniture.
 
 import array
 import os
 
 import bpy
-from mathutils import Vector
 
 ROOT = r"d:\trae_git\Person_Website"
 TEX = os.path.join(ROOT, "Code", "public", "textures", "door")
@@ -33,6 +31,10 @@ def ensure_image(name, res=RES):
         img = bpy.data.images.new(name, res, res, alpha=False, float_buffer=True)
         img.colorspace_settings.name = "sRGB"
         return img
+    # Clear to black so bake starts clean
+    px = [0.0] * (res * res * 4)
+    old.pixels.foreach_set(px)
+    old.update()
     return old
 
 
@@ -62,44 +64,36 @@ def hide_preview_lights():
 
 
 def set_or_make_spot(name, bl_loc, energy, size, spot_size, spot_blend, col):
-    """bl_loc is Blender XYZ (Y forward inverted from three Z). Aim straight down."""
     obj = bpy.data.objects.get(name)
-    if obj is None:
+    if obj is None or obj.type != "LIGHT" or obj.data.type != "SPOT":
+        if obj is not None:
+            bpy.data.objects.remove(obj, do_unlink=True)
         data = bpy.data.lights.new(name, type="SPOT")
         obj = bpy.data.objects.new(name, data)
         col.objects.link(obj)
-    elif obj.type != "LIGHT":
-        raise RuntimeError(name + " exists but is not a light")
-    else:
-        if obj.data.type != "SPOT":
-            # Recreate as spot
-            bpy.data.objects.remove(obj, do_unlink=True)
-            data = bpy.data.lights.new(name, type="SPOT")
-            obj = bpy.data.objects.new(name, data)
-            col.objects.link(obj)
     light = obj.data
     light.type = "SPOT"
     light.energy = energy
-    light.color = (1.0, 0.72, 0.42)
+    light.color = (1.0, 0.74, 0.44)
     light.shadow_soft_size = size
     light.spot_size = spot_size
     light.spot_blend = spot_blend
     light.use_shadow = True
     obj.location = bl_loc
-    # Point straight down (-Z in Blender)
-    obj.rotation_euler = (0.0, 0.0, 0.0)
-    # Spot default aims -Z; rotate to aim -Z world: identity is fine for Blender spot
-    # Actually Blender spot aims along local -Z. Default rotation (0,0,0) aims -Z. Good.
+    obj.rotation_euler = (0.0, 0.0, 0.0)  # spot aims local -Z = world -Z
     obj.hide_render = False
     obj.hide_viewport = False
     return obj
 
 
-def set_point(name, energy, soft=0.35):
+def set_point(name, energy, soft=0.25):
     obj = bpy.data.objects.get(name)
     if not obj or obj.type != "LIGHT":
         return
-    obj.data.type = "POINT"
+    # Keep as POINT (recreate if was converted)
+    if obj.data.type != "POINT":
+        bpy.data.objects.remove(obj, do_unlink=True)
+        return
     obj.data.energy = energy
     obj.data.color = (1.0, 0.72, 0.42)
     obj.data.shadow_soft_size = soft
@@ -107,35 +101,38 @@ def set_point(name, energy, soft=0.35):
 
 
 def tune_lights_for_pools():
-    """Ceiling = soft spots for elliptical pools; other bake lights quieter; world dark."""
+    """
+    OC-01: narrower cones so CeilA/CeilB stay as TWO ellipses.
+    Previous ~1.0 rad (~57°) merged into one blob.
+    """
     shell = bpy.data.collections.get("Bake0_Shell")
     if shell is None:
         raise RuntimeError("Bake0_Shell missing")
 
     # Three.js (x,y,z) → Blender (x, -z, y)
-    # CeilA three (0.05, ROOM_H-0.22, 0.15) → (0.05, -0.15, ROOM_H-0.22)
+    # Tighter cones (~38–42°), soft blend, moderate soft size
     set_or_make_spot(
         "BakeLight_CeilA",
-        (0.05, -0.15, ROOM_H - 0.22),
-        energy=950,
-        size=0.55,
-        spot_size=1.05,  # radians ~60°
-        spot_blend=0.92,
+        (0.05, -0.15, ROOM_H - 0.18),
+        energy=1100,
+        size=0.42,
+        spot_size=0.68,  # ~39°
+        spot_blend=0.82,
         col=shell,
     )
     set_or_make_spot(
         "BakeLight_CeilB",
-        (0.10, -1.85, ROOM_H - 0.28),
-        energy=720,
-        size=0.5,
-        spot_size=0.98,
-        spot_blend=0.9,
+        (0.10, -1.85, ROOM_H - 0.22),
+        energy=920,
+        size=0.38,
+        spot_size=0.62,  # ~35.5°
+        spot_blend=0.8,
         col=shell,
     )
-    # Keep wall/table lamps as points but lower so floor contrast is ceiling-driven
-    set_point("BakeLight_Picture", 70, soft=0.25)
-    set_point("BakeLight_Board", 70, soft=0.25)
-    set_point("BakeLight_Table", 90, soft=0.2)
+    # Mute fill so between-pool floor stays dark
+    set_point("BakeLight_Picture", 35, soft=0.2)
+    set_point("BakeLight_Board", 35, soft=0.2)
+    set_point("BakeLight_Table", 45, soft=0.15)
 
     world = bpy.context.scene.world
     if world is None:
@@ -143,52 +140,47 @@ def tune_lights_for_pools():
         bpy.context.scene.world = world
     world.use_nodes = True
     bg = next(n for n in world.node_tree.nodes if n.type == "BACKGROUND")
-    bg.inputs[0].default_value = (0.28, 0.14, 0.07, 1)
-    bg.inputs[1].default_value = 0.006  # very low fill → darker between pools
+    bg.inputs[0].default_value = (0.22, 0.11, 0.05, 1)
+    bg.inputs[1].default_value = 0.003
 
 
 def contrast_pools(image):
-    """
-    Stretch floor lightmap: crush gray fill, keep soft bright pools.
-    Soft knee so edges stay soft (no hard posterize).
-    """
+    """Crush fill, keep soft pool highs — mild so polish can refine ellipses."""
     count = image.size[0] * image.size[1] * 4
     buf = array.array("f", [0.0]) * count
     image.pixels.foreach_get(buf)
 
-    # Sample percentiles roughly via stride
     vals = []
     for i in range(0, count, 64):
         vals.append(max(buf[i], buf[i + 1], buf[i + 2]))
     vals.sort()
-    lo = vals[max(0, int(len(vals) * 0.08))]
-    hi = vals[min(len(vals) - 1, int(len(vals) * 0.97))]
+    lo = vals[max(0, int(len(vals) * 0.12))]
+    hi = vals[min(len(vals) - 1, int(len(vals) * 0.985))]
     span = max(1e-4, hi - lo)
     print(image.name, "contrast lo/hi", round(lo, 4), round(hi, 4))
 
     for i in range(0, count, 4):
         r, g, b = buf[i], buf[i + 1], buf[i + 2]
-        # Normalize to 0..1 against lo/hi
-        rn = max(0.0, min(1.0, (r - lo) / span))
-        gn = max(0.0, min(1.0, (g - lo) / span))
-        bn = max(0.0, min(1.0, (b - lo) / span))
-        # Soft S-curve: darken lows, lift highs (pool centers)
+
+        def nrm(c):
+            return max(0.0, min(1.0, (c - lo) / span))
+
+        rn, gn, bn = nrm(r), nrm(g), nrm(b)
+
         def curve(t):
-            # smoothstep-ish then gamma
             s = t * t * (3.0 - 2.0 * t)
-            return pow(s, 0.78)
+            return pow(s, 0.88)
 
         buf[i] = curve(rn)
-        buf[i + 1] = curve(gn) * 0.92 + curve(rn) * 0.04  # keep warm
-        buf[i + 2] = curve(bn) * 0.75
+        buf[i + 1] = curve(gn) * 0.9 + curve(rn) * 0.05
+        buf[i + 2] = curve(bn) * 0.7
         buf[i + 3] = 1.0
 
-    # Peak normalize into JPEG-safe range
     peak = 0.0
     for i in range(0, count, 16):
         peak = max(peak, buf[i], buf[i + 1], buf[i + 2])
     if peak > 1.0:
-        scale = 0.96 / peak
+        scale = 0.94 / peak
         for i in range(count):
             buf[i] *= scale
         print(image.name, "peak scale", round(scale, 3))
@@ -197,7 +189,7 @@ def contrast_pools(image):
     image.update()
 
 
-def save_jpg(image, path, quality=85):
+def save_jpg(image, path, quality=88):
     scene = bpy.context.scene
     scene.render.image_settings.file_format = "JPEG"
     scene.render.image_settings.quality = quality
@@ -227,11 +219,12 @@ def bake_floor(objs, image, bake_type):
         scene.cycles.device = "CPU"
     except Exception:
         pass
-    scene.cycles.samples = 96 if bake_type == "DIFFUSE" else 48
+    scene.cycles.samples = 128 if bake_type == "DIFFUSE" else 48
     scene.cycles.use_denoising = True
-    scene.cycles.max_bounces = 4
-    scene.cycles.diffuse_bounces = 3
-    scene.render.bake.margin = 14
+    # Fewer bounces → less fill between pools
+    scene.cycles.max_bounces = 3
+    scene.cycles.diffuse_bounces = 2
+    scene.render.bake.margin = 16
     scene.render.bake.use_clear = True
     if bake_type == "DIFFUSE":
         scene.render.bake.use_pass_direct = True
@@ -252,7 +245,6 @@ def main():
     floor = [bpy.data.objects["BakeFloor"]]
     activate_uv2(floor)
 
-    # Ensure casters / bounce visible for contact shadows
     for col_name in ("Bake0_Casters", "Bake0_Shell"):
         col = bpy.data.collections.get(col_name)
         if not col:
@@ -266,17 +258,17 @@ def main():
     img_l = ensure_image("room_floor_lightmap", RES)
     img_a = ensure_image("room_floor_ao", RES)
 
-    print("=== bake floor DIFFUSE (pools) ===")
+    print("=== OC-01 bake floor DIFFUSE (dual ellipses) ===")
     bake_floor(floor, img_l, "DIFFUSE")
     contrast_pools(img_l)
-    save_jpg(img_l, os.path.join(TEX, "room_floor_lightmap.jpg"), quality=86)
+    save_jpg(img_l, os.path.join(TEX, "room_floor_lightmap.jpg"), quality=88)
 
-    print("=== bake floor AO ===")
+    print("=== OC-01 bake floor AO ===")
     bake_floor(floor, img_a, "AO")
-    save_jpg(img_a, os.path.join(TEX, "room_floor_ao.jpg"), quality=84)
+    save_jpg(img_a, os.path.join(TEX, "room_floor_ao.jpg"), quality=85)
 
     bpy.ops.wm.save_mainfile()
-    print("Bake2 floor pools done")
+    print("OC-01 floor pools bake done")
 
 
 if __name__ == "__main__":

@@ -31,10 +31,10 @@ Room GLBs (geometry + UV1/UV2 only; no embedded color maps)
          picture_frame.glb picture_lamp.glb ceiling_coffers.glb
          bookcase.glb room_shell.glb
   work: System_doc/3D美术/第二期/room_phase2.blend
-        System_doc/3D美术/第二期/_build_phase2_assets.py
-        System_doc/3D美术/第二期/_build_table_stool_lamp.py
-        System_doc/3D美术/第二期/_bake0_room_shell.py
-        System_doc/3D美术/第二期/_bake1_furniture.py
+        System_doc/3D美术/第二期/脚本/_obsolete/_build_phase2_assets.py
+        System_doc/3D美术/第二期/脚本/_obsolete/_build_table_stool_lamp.py
+        System_doc/3D美术/第二期/脚本/_bake0_room_shell.py
+        System_doc/3D美术/第二期/脚本/_bake1_furniture.py
 
 bookcase.glb  (corner bookcase; project original)
   source: project original geometry

@@ -12,8 +12,10 @@ export default function RoomHud({ label }) {
         {label != null ? <span className="ml-3 text-white/45">{label}</span> : null}
       </div>
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-xs tracking-wide text-white/40">
-        点击灯 / 壁画 / 白板 / 柜子推进（最多 3 次）· 右键或空白处后退
-        <div className="mt-1 text-white/25">灯推到最近后再点：开关台灯</div>
+        点击灯 / 壁画 / 白板 / 柜子推进· 右键或空白处后退
+        <div className="mt-1 text-white/25">
+          壁画：第 1～2 次框内预览，第 3 次进 MechAssist · 灯推到最近后再点：开关台灯
+        </div>
       </div>
       {unlocked ? (
         <Link

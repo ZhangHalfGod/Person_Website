@@ -5,9 +5,9 @@ import { HALF_D, TABLE } from './roomLayout.js'
 import FocusHit from './FocusHit.jsx'
 import { assignLightMaps } from './bakeMaps.js'
 
-const TABLE_URL = '/models/table.glb?v=bake1'
+const TABLE_URL = '/models/table.glb?v=oc02'
 const STOOL_URL = '/models/stool.glb?v=bake1'
-const BOOKCASE_URL = '/models/bookcase.glb?v=bake1'
+const BOOKCASE_URL = '/models/bookcase.glb?v=oc03'
 
 function tableMat(_name, materials) {
   return materials.tableLit
@@ -19,8 +19,42 @@ function stoolMat(name, materials) {
 }
 
 function bookcaseMat(name, materials) {
-  if (/Book/i.test(name)) return materials.bookcaseDarkLit
+  if (/Book/i.test(name)) {
+    const n = Number.parseInt(String(name).replace(/\D/g, ''), 10) || 0
+    if (n % 3 === 1) return materials.bookcaseBookMid
+    if (n % 3 === 2) return materials.bookcaseBookDeep
+    return materials.bookcaseDarkLit
+  }
   return materials.bookcaseLit
+}
+
+/**
+ * OC-03: 1–2 weak warm points inside the case — spines only, no flicker.
+ * Intensity kept low vs bookcase LM to avoid double-count wash.
+ */
+function BookcaseAccentLights() {
+  return (
+    <group>
+      {/* Upper shelves — narrow reach */}
+      <pointLight
+        position={[0.05, 1.62, -0.1]}
+        color="#ffb366"
+        intensity={1.15}
+        distance={1.35}
+        decay={2}
+        castShadow={false}
+      />
+      {/* Mid / lower spines */}
+      <pointLight
+        position={[-0.08, 0.92, -0.12]}
+        color="#ff9a55"
+        intensity={0.85}
+        distance={1.15}
+        decay={2}
+        castShadow={false}
+      />
+    </group>
+  )
 }
 
 function GltfProp({ url, materials, pickMaterial, litMaterials, position, userData }) {
@@ -51,7 +85,12 @@ export default function Furniture({ materials }) {
   const { x, z } = TABLE
   const tableLit = [materials.tableLit]
   const stoolLit = [materials.stoolLit, materials.stoolDarkLit]
-  const bookLit = [materials.bookcaseLit, materials.bookcaseDarkLit]
+  const bookLit = [
+    materials.bookcaseLit,
+    materials.bookcaseDarkLit,
+    materials.bookcaseBookMid,
+    materials.bookcaseBookDeep
+  ]
 
   return (
     <group>
@@ -95,6 +134,7 @@ export default function Furniture({ materials }) {
           litMaterials={bookLit}
           position={[0, 0, 0]}
         />
+        <BookcaseAccentLights />
         <FocusHit focusId="bookcase" position={[0, 1.25, -0.15]} args={[1.1, 2.4, 0.55]} />
       </group>
     </group>
